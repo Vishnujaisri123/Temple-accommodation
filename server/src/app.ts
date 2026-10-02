@@ -4,6 +4,7 @@ import { connectDB } from './config/db';
 import bookingRoutes from './routes/bookingRoutes';
 import adminRoutes from './routes/adminRoutes';
 import accommodationRoutes from './routes/accommodationRoutes';
+import paymentRoutes from './routes/paymentRoutes';
 import { Accommodation } from './models/Accommodation';
 import { Bed } from './models/Bed';
 
@@ -37,6 +38,7 @@ connectDB().then(() => seedDB());
 app.use('/api/accommodations', accommodationRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payments', paymentRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

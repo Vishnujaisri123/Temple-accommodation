@@ -82,26 +82,22 @@ const Booking = () => {
   };
 
   const handlePaymentSubmit = async () => {
-    if (!utrNumber) {
-      alert("Please enter the UTR / Payment Reference number.");
-      return;
-    }
     try {
-      const res = await fetch(`${API_BASE}/bookings/${bookingResponse.bookingId}/payment`, {
-        method: 'PATCH',
+      const res = await fetch(`${API_BASE}/payments/initiate`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentReference: utrNumber })
+        body: JSON.stringify({ bookingId: bookingResponse.bookingId })
       });
       const data = await res.json();
       
-      if (data.success) {
-        alert(`Payment submitted successfully! Your Booking ID is ${bookingResponse.bookingId}`);
-        navigate('/status');
+      if (data.success && data.url) {
+        // Redirect the user to PhonePe PG
+        window.location.href = data.url;
       } else {
-        alert("Failed to submit payment: " + data.message);
+        alert("Failed to initiate payment: " + data.message);
       }
     } catch (err) {
-      alert("An error occurred while submitting payment.");
+      alert("An error occurred while connecting to the payment gateway.");
     }
   };
 
@@ -196,22 +192,12 @@ const Booking = () => {
           <div>
             <h2 style={{ marginBottom: '1rem' }}>Complete Payment</h2>
             <p style={{ marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
-              Please scan the QR code below or use the UPI ID in your PhonePe app to pay <strong style={{color: 'var(--text-main)'}}>₹{pricing.totalAmount.toFixed(2)}</strong>.
+              You will be redirected to the secure PhonePe Payment Gateway to complete your payment of <strong style={{color: 'var(--text-main)'}}>₹{pricing.totalAmount.toFixed(2)}</strong>.
             </p>
 
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <div style={{ width: '200px', height: '200px', backgroundColor: '#e2e8f0', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                [UPI QR CODE]
-              </div>
-              <p style={{ marginTop: '0.5rem', fontWeight: 500 }}>UPI ID: vadapalli@ybl</p>
-            </div>
-
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label>Enter UTR / Transaction Reference Number</label>
-              <input type="text" className="input-field" placeholder="e.g. 30129381203" required value={utrNumber} onChange={e => setUtrNumber(e.target.value)} />
-            </div>
-
-            <button onClick={handlePaymentSubmit} className="btn btn-primary" style={{ width: '100%' }}>Submit Payment Details</button>
+            <button onClick={handlePaymentSubmit} className="btn btn-primary" style={{ width: '100%', padding: '1rem' }}>
+              Pay via PhonePe
+            </button>
           </div>
         )}
       </div>

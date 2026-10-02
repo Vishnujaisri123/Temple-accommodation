@@ -5,6 +5,7 @@ import Rooms from './pages/Rooms';
 import RoomDetails from './pages/RoomDetails';
 import Booking from './pages/Booking';
 import BookingStatus from './pages/BookingStatus';
+import PaymentStatus from './pages/PaymentStatus';
 import Contact from './pages/Contact';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Route path="/rooms" element={<Rooms />} />
           <Route path="/rooms/:id" element={<RoomDetails />} />
           <Route path="/book/:id?" element={<Booking />} />
+          <Route path="/payment/status" element={<PaymentStatus />} />
           <Route path="/status" element={<BookingStatus />} />
           <Route path="/contact" element={<Contact />} />
         </Routes>
