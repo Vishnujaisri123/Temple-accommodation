@@ -170,7 +170,7 @@ const Booking = () => {
               </div>
             </div>
 
-            <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#fffbeb', borderLeft: '4px solid var(--color-primary)', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ marginBottom: '1.5rem', padding: '1.25rem', backgroundColor: '#FFF5F5', borderLeft: '4px solid var(--color-primary)', borderRadius: 'var(--radius-sm)', color: 'var(--color-secondary)', fontWeight: 500 }}>
               <strong>Important:</strong> Once your booking is confirmed by the accommodation owner, the booking cannot be cancelled.
             </div>
 
