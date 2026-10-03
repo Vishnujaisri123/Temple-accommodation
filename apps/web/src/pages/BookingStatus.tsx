@@ -85,11 +85,11 @@ const BookingStatus = () => {
             </div>
 
             {statusResult.status === 'CONFIRMED' ? (
-              <div style={{ padding: '1rem', backgroundColor: '#ecfdf5', borderLeft: '4px solid #10b981', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ padding: '1.25rem', backgroundColor: '#F0FFF4', borderLeft: '4px solid #38A169', borderRadius: 'var(--radius-sm)', color: '#276749', fontWeight: 500 }}>
                 Your booking is confirmed. Confirmed bookings cannot be cancelled.
               </div>
             ) : (
-              <div style={{ padding: '1rem', backgroundColor: '#eff6ff', borderLeft: '4px solid #3b82f6', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ padding: '1.25rem', backgroundColor: '#FFF5F5', borderLeft: '4px solid var(--color-primary)', borderRadius: 'var(--radius-sm)', color: 'var(--color-secondary)', fontWeight: 500 }}>
                 Your payment has been submitted. The owner will call you shortly to verify and confirm your booking.
               </div>
             )}
