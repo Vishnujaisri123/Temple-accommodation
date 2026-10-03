@@ -12,22 +12,22 @@ const Home = () => {
         alignItems: 'center',
         textAlign: 'center',
         padding: '2rem',
-        background: 'radial-gradient(circle at 50% 0%, rgba(255, 140, 0, 0.15) 0%, rgba(255, 253, 249, 1) 70%)',
+        background: 'linear-gradient(rgba(26, 18, 16, 0.7), rgba(128, 0, 0, 0.6)), url("/hero-bg.jpg")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
         position: 'relative',
         overflow: 'hidden'
       }}>
         {/* Background decorative elements */}
-        <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: '300px', height: '300px', background: 'var(--color-primary)', filter: 'blur(100px)', opacity: 0.1, borderRadius: '50%' }}></div>
-        <div style={{ position: 'absolute', bottom: '10%', right: '-5%', width: '400px', height: '400px', background: 'var(--color-secondary)', filter: 'blur(120px)', opacity: 0.08, borderRadius: '50%' }}></div>
-
-        <div className="glass-panel" style={{ padding: '4rem 3rem', maxWidth: '850px', margin: '0 auto', position: 'relative', zIndex: 1, borderTop: '4px solid var(--color-primary)' }}>
-          <p style={{ fontFamily: 'var(--font-telugu)', fontSize: '1.5rem', color: 'var(--color-secondary)', marginBottom: '1rem', fontWeight: '500' }}>
+        <div className="glass-panel" style={{ padding: '4rem 3rem', maxWidth: '850px', margin: '0 auto', position: 'relative', zIndex: 1, borderTop: '4px solid var(--color-primary)', background: 'rgba(26, 18, 16, 0.6)', backdropFilter: 'blur(8px)', borderColor: 'rgba(255, 255, 255, 0.2)' }}>
+          <p style={{ fontFamily: 'var(--font-telugu)', fontSize: '1.5rem', color: 'var(--color-primary)', marginBottom: '1rem', fontWeight: '500', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
             వాడపల్లి శ్రీ వేంకటేశ్వర స్వామి సన్నిధికి స్వాగతం
           </p>
-          <h1 style={{ fontSize: '3.5rem', color: 'var(--text-main)', marginBottom: '1.5rem', letterSpacing: '-0.02em', lineHeight: '1.1' }}>
+          <h1 style={{ fontSize: '3.5rem', color: '#ffffff', marginBottom: '1.5rem', letterSpacing: '-0.02em', lineHeight: '1.1', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
             Vadapalli Temple Accommodation
           </h1>
-          <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
+          <p style={{ fontSize: '1.25rem', color: '#E2E8F0', marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto 2.5rem auto', textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
             Experience a peaceful and comfortable stay just minutes away from Sri Venkateswara Swamy Temple. A perfect blend of tradition and modern comfort.
           </p>
           <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
