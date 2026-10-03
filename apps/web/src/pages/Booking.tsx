@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Booking = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -25,7 +24,6 @@ const Booking = () => {
   const [pricing, setPricing] = useState({ baseAmount: 0, gstAmount: 0, totalAmount: 0 });
   const [acceptedPolicy, setAcceptedPolicy] = useState(false);
   const [bookingResponse, setBookingResponse] = useState<any>(null);
-  const [utrNumber, setUtrNumber] = useState('');
 
   // Simulate pricing calculation
   useEffect(() => {
