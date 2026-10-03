@@ -32,7 +32,7 @@ const Rooms = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h2 style={{ margin: 0 }}>{acc.name}</h2>
                 <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
-                  ₹{acc.pricePerDay}<small style={{color:'var(--text-muted)', fontSize:'0.9rem'}}>{acc.type === 'PRIVATE_ROOM' ? '/day' : '/bed/day'}</small>
+                  ₹{acc.pricePerDay}<small style={{color:'var(--text-muted)', fontSize:'0.9rem'}}>{acc.type === 'PRIVATE_ROOM' ? '/12 hours' : '/bed/12 hours'}</small>
                 </span>
               </div>
               <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>{acc.description}</p>
