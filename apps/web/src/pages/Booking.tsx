@@ -99,6 +99,26 @@ const Booking = () => {
     }
   };
 
+  const handleMockPayment = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/bookings/${bookingResponse.bookingId}/payment`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentReference: 'TEST-UTR-' + Date.now() })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        alert("Mock payment successful! Your booking is now submitted.");
+        window.location.href = '/status';
+      } else {
+        alert("Mock payment failed: " + data.message);
+      }
+    } catch (err) {
+      alert("An error occurred during mock payment.");
+    }
+  };
+
   return (
     <section className="animate-fade-in" style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
       <h1 style={{ fontSize: '2.5rem', color: 'var(--color-primary)', marginBottom: '2rem', textAlign: 'center' }}>
@@ -193,9 +213,15 @@ const Booking = () => {
               You will be redirected to the secure PhonePe Payment Gateway to complete your payment of <strong style={{color: 'var(--text-main)'}}>₹{pricing.totalAmount.toFixed(2)}</strong>.
             </p>
 
-            <button onClick={handlePaymentSubmit} className="btn btn-primary" style={{ width: '100%', padding: '1rem' }}>
-              Pay via PhonePe
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <button onClick={handlePaymentSubmit} className="btn btn-primary" style={{ width: '100%', padding: '1rem' }}>
+                Pay via PhonePe
+              </button>
+              
+              <button onClick={handleMockPayment} className="btn btn-secondary" style={{ width: '100%', padding: '1rem', backgroundColor: '#e2e8f0', color: '#475569', borderColor: '#cbd5e1' }}>
+                Test Mode: Skip Payment
+              </button>
+            </div>
           </div>
         )}
       </div>
