@@ -100,7 +100,7 @@ const Booking = () => {
   };
 
   return (
-    <div className="animate-fade-in" style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
+    <section className="animate-fade-in" style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
       <h1 style={{ fontSize: '2.5rem', color: 'var(--color-primary)', marginBottom: '2rem', textAlign: 'center' }}>
         Complete Your Booking
       </h1>
@@ -110,7 +110,7 @@ const Booking = () => {
           <form onSubmit={handleNext}>
             <h2 style={{ marginBottom: '1.5rem' }}>Guest Details</h2>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div className="grid-2-col" style={{ marginBottom: '1rem' }}>
               <div>
                 <label>Check-in Date</label>
                 <input type="date" className="input-field" required value={formData.checkIn} onChange={e => setFormData({...formData, checkIn: e.target.value})} />
@@ -136,7 +136,7 @@ const Booking = () => {
               <input type="text" className="input-field" required value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div className="grid-2-col" style={{ marginBottom: '1.5rem' }}>
               <div>
                 <label>Adults (Max {formData.accommodationType === 'PRIVATE_ROOM' ? '2' : 'No limit'})</label>
                 <input type="number" min="1" max={formData.accommodationType === 'PRIVATE_ROOM' ? "2" : "10"} className="input-field" required value={formData.adults} onChange={e => setFormData({...formData, adults: parseInt(e.target.value)})} />

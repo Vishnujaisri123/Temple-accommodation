@@ -16,13 +16,13 @@ const Rooms = () => {
   }, []);
 
   return (
-    <div className="animate-fade-in" style={{ padding: '4rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
+    <section className="animate-fade-in" style={{ padding: '4rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
         <h1 style={{ fontSize: '3rem', color: 'var(--color-primary)' }}>Our Accommodation</h1>
         <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>Choose from our private rooms or shared hall beds.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+      <div className="grid-auto-fit">
         {accommodations.map((acc) => (
           <div key={acc._id} className="card">
             <div style={{ height: '250px', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>
@@ -57,7 +57,7 @@ const Rooms = () => {
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 

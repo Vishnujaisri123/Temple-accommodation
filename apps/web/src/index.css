@@ -234,4 +234,25 @@ a:hover {
     flex-direction: column !important;
     align-items: stretch !important;
   }
+
+  .grid-2-col {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid-auto-fit {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Desktop Defaults for New Utilities */
+.grid-2-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.grid-auto-fit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
 }
