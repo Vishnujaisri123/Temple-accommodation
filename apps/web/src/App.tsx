@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import AudioPlayer from './components/AudioPlayer';
 import Home from './pages/Home';
 import Rooms from './pages/Rooms';
 import RoomDetails from './pages/RoomDetails';
@@ -11,6 +12,7 @@ import Contact from './pages/Contact';
 function App() {
   return (
     <Router>
+      <AudioPlayer />
       <Navbar />
       <main>
         <Routes>
