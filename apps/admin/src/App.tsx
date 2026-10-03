@@ -67,11 +67,7 @@ const BookingsList = () => {
     fetch(`${API_BASE}/admin/bookings`)
       .then(res => res.json())
       .then(data => {
-        if (data.success) {
-          // Filter out legacy records from old projects that don't have checkIn dates
-          const validBookings = data.data.filter((b: any) => b.checkIn && b.checkOut);
-          setBookings(validBookings);
-        }
+        if (data.success) setBookings(data.data);
       });
   };
 
@@ -92,6 +88,22 @@ const BookingsList = () => {
       }
     } catch (err) {
       alert("Error confirming booking.");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to completely delete this booking? This action cannot be undone.")) return;
+    try {
+      const res = await fetch(`${API_BASE}/admin/bookings/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        alert("Booking deleted successfully.");
+        fetchBookings();
+      } else {
+        alert("Failed to delete: " + data.message);
+      }
+    } catch (err) {
+      alert("Error deleting booking.");
     }
   };
 
@@ -123,6 +135,7 @@ const BookingsList = () => {
               {booking.bookingStatus === 'PAYMENT_SUBMITTED' && (
                 <button className="btn btn-secondary" style={{ backgroundColor: '#10b981', color: 'white' }} onClick={() => handleConfirm(booking._id)}>Verify & Confirm</button>
               )}
+              <button className="btn btn-secondary" style={{ backgroundColor: '#ef4444', color: 'white', borderColor: '#dc2626' }} onClick={() => handleDelete(booking._id)}>🗑️ Delete</button>
             </div>
           </div>
         </div>

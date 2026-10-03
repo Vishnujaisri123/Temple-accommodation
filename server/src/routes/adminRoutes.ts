@@ -67,5 +67,16 @@ router.patch('/bookings/:id/confirm', async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+// Delete Booking
+router.delete('/bookings/:id', async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndDelete(req.params.id);
+    if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+
+    res.json({ success: true, message: 'Booking deleted successfully' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 export default router;
