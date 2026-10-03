@@ -67,7 +67,11 @@ const BookingsList = () => {
     fetch(`${API_BASE}/admin/bookings`)
       .then(res => res.json())
       .then(data => {
-        if (data.success) setBookings(data.data);
+        if (data.success) {
+          // Filter out legacy records from old projects that don't have checkIn dates
+          const validBookings = data.data.filter((b: any) => b.checkIn && b.checkOut);
+          setBookings(validBookings);
+        }
       });
   };
 
