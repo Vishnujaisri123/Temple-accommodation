@@ -9,7 +9,7 @@ const AudioPlayer = () => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    audio.volume = 0.3; // Set background volume to 30% so it's pleasant, not overwhelming
+    audio.volume = 0.8; // Increased volume as requested
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
