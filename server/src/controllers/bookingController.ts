@@ -24,12 +24,12 @@ export const createBooking = async (req: Request, res: Response) => {
     const checkOutDate = new Date(validatedData.checkOut);
 
     // Business Rules:
-    // Calculate number of days
+    // Calculate number of 12-hour slots
     const diffTime = Math.abs(checkOutDate.getTime() - checkInDate.getTime());
-    const numberOfDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const numberOfSlots = Math.ceil(diffTime / (1000 * 60 * 60 * 12));
 
-    if (numberOfDays < 1) {
-      throw new Error("Checkout date must be after checkin date");
+    if (numberOfSlots < 1) {
+      throw new Error("Checkout date/time must be after checkin date/time");
     }
 
     // 2. Double-Booking Prevention Check
@@ -55,7 +55,7 @@ export const createBooking = async (req: Request, res: Response) => {
     if (accommodation.type === 'PRIVATE_ROOM') {
       if (validatedData.adults > 2) throw new Error("Maximum 2 adults allowed in private room");
       if (validatedData.children > 2) throw new Error("Maximum 2 children allowed in private room");
-      baseAmount = accommodation.pricePerDay * numberOfDays;
+      baseAmount = accommodation.pricePerDay * numberOfSlots;
     } else if (accommodation.type === 'HALL') {
       if (!validatedData.bedIds || validatedData.bedIds.length === 0) throw new Error("Must select at least one bed");
       
@@ -63,7 +63,7 @@ export const createBooking = async (req: Request, res: Response) => {
       if (beds.length !== validatedData.bedIds.length) throw new Error("Some selected beds are invalid");
 
       const pricePerBed = beds[0].pricePerDay;
-      baseAmount = pricePerBed * validatedData.bedIds.length * numberOfDays;
+      baseAmount = pricePerBed * validatedData.bedIds.length * numberOfSlots;
     }
 
     // 4. GST Calculation

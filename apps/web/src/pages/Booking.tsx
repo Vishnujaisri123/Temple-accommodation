@@ -112,12 +112,12 @@ const Booking = () => {
             
             <div className="grid-2-col" style={{ marginBottom: '1rem' }}>
               <div>
-                <label>Check-in Date</label>
-                <input type="date" className="input-field" required value={formData.checkIn} onChange={e => setFormData({...formData, checkIn: e.target.value})} />
+                <label>Check-in Date & Time</label>
+                <input type="datetime-local" className="input-field" required value={formData.checkIn} onChange={e => setFormData({...formData, checkIn: e.target.value})} />
               </div>
               <div>
-                <label>Check-out Date</label>
-                <input type="date" className="input-field" required value={formData.checkOut} onChange={e => setFormData({...formData, checkOut: e.target.value})} />
+                <label>Check-out Date & Time</label>
+                <input type="datetime-local" className="input-field" required value={formData.checkOut} onChange={e => setFormData({...formData, checkOut: e.target.value})} />
               </div>
             </div>
 
