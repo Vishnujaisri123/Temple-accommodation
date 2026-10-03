@@ -199,7 +199,7 @@ const Booking = () => {
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 };
 
