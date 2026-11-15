@@ -7,7 +7,7 @@
     "server"
   ],
   "scripts": {
-    "dev": "npx concurrently \"npm run dev -w apps/web\" \"npm run dev -w apps/admin\" \"npm run dev -w server\"",
+    "dev": "npx concurrently \"npm run dev -w apps/web\" \"npm run dev -w server\"",
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present"
   },
