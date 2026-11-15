@@ -1,82 +1,498 @@
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const Home = () => {
+const Home: React.FC = () => {
+  // Quick date selector state
+  const [quickCheckIn, setQuickCheckIn] = useState('');
+  const [quickCheckOut, setQuickCheckOut] = useState('');
+  const [selectedAccType, setSelectedAccType] = useState('ALL');
+
   return (
-    <div className="animate-fade-in">
-      {/* Premium Hero Section */}
-      <section style={{ 
-        minHeight: '85vh',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        textAlign: 'center',
-        padding: '2rem',
-        background: 'linear-gradient(rgba(26, 18, 16, 0.7), rgba(128, 0, 0, 0.6)), url("/hero-bg.jpg")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Background decorative elements */}
-        <div className="glass-panel" style={{ padding: '4rem 3rem', maxWidth: '850px', margin: '0 auto', position: 'relative', zIndex: 1, borderTop: '4px solid var(--color-primary)', background: 'rgba(26, 18, 16, 0.6)', backdropFilter: 'blur(8px)', borderColor: 'rgba(255, 255, 255, 0.2)' }}>
-          <p style={{ fontFamily: 'var(--font-telugu)', fontSize: '1.5rem', color: 'var(--color-primary)', marginBottom: '1rem', fontWeight: '500', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-            వాడపల్లి శ్రీ వేంకటేశ్వర స్వామి సన్నిధికి స్వాగతం
-          </p>
-          <h1 style={{ fontSize: '3.5rem', color: '#ffffff', marginBottom: '1.5rem', letterSpacing: '-0.02em', lineHeight: '1.1', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+    <div className="animate-fade-in" style={{ backgroundColor: 'var(--bg-main)' }}>
+      {/* 1. Hero Section */}
+      <section
+        style={{
+          position: 'relative',
+          padding: '4.5rem 1.5rem 5.5rem 1.5rem',
+          backgroundColor: '#FFFDF9',
+          borderBottom: '1px solid var(--border-color)',
+          textAlign: 'center',
+          overflow: 'hidden'
+        }}
+      >
+        {/* Subtle decorative gold line */}
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              backgroundColor: 'rgba(197, 160, 89, 0.12)',
+              border: '1px solid var(--color-secondary)',
+              padding: '0.4rem 1rem',
+              borderRadius: 'var(--radius-full)',
+              color: 'var(--color-primary)',
+              fontFamily: 'var(--font-telugu)',
+              fontSize: '1rem',
+              fontWeight: 600,
+              marginBottom: '1.25rem'
+            }}
+          >
+            <span>🪔</span> వాడపల్లి శ్రీ వేంకటేశ్వర స్వామి సన్నిధికి స్వాగతం
+          </div>
+
+          <h1
+            className="heading-serif"
+            style={{
+              fontSize: 'clamp(2.1rem, 5vw, 3.25rem)',
+              color: 'var(--color-primary)',
+              lineHeight: 1.15,
+              marginBottom: '1rem'
+            }}
+          >
             Vadapalli Temple Accommodation
           </h1>
-          <p style={{ fontSize: '1.25rem', color: '#E2E8F0', marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto 2.5rem auto', textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
-            Experience a peaceful and comfortable stay just minutes away from Sri Venkateswara Swamy Temple. A perfect blend of tradition and modern comfort.
+
+          <p
+            style={{
+              fontSize: 'clamp(1rem, 2vw, 1.2rem)',
+              color: 'var(--text-muted)',
+              maxWidth: '680px',
+              margin: '0 auto 2.25rem auto',
+              lineHeight: 1.6
+            }}
+          >
+            Peaceful, clean, and sacred lodging just a 3-minute walk from the holy Sri Venkateswara Swamy Temple. Dedicated family rooms and individual hall beds with direct owner care.
           </p>
-          <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/rooms" className="btn btn-primary" style={{ padding: '1.1rem 2.5rem', fontSize: '1.1rem' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-              Book Your Stay
-            </Link>
-            <Link to="/contact" className="btn btn-secondary" style={{ padding: '1.1rem 2.5rem', fontSize: '1.1rem', borderColor: 'var(--text-muted)', color: 'var(--text-main)' }}>
-              Contact Us
-            </Link>
+
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a
+              href="#date-selector"
+              className="btn btn-primary"
+              style={{ padding: '0.85rem 2rem', fontSize: '1.05rem' }}
+            >
+              📅 Check Availability & Book
+            </a>
+            <a
+              href="https://wa.me/918555085539?text=Namaste,%20I%20would%20like%20to%20inquire%20about%20accommodation%20in%20Vadapalli."
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-secondary"
+              style={{ padding: '0.85rem 2rem', fontSize: '1.05rem', backgroundColor: '#FFFDF9' }}
+            >
+              💬 WhatsApp Owner
+            </a>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section style={{ padding: '6rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 style={{ fontSize: '2.5rem', color: 'var(--text-main)' }}>Why Choose Us?</h2>
-          <div style={{ width: '60px', height: '4px', background: 'var(--color-primary)', margin: '1rem auto', borderRadius: '2px' }}></div>
+      {/* 2. Quick Date & Slot Selector */}
+      <section
+        id="date-selector"
+        style={{
+          maxWidth: '1080px',
+          margin: '-2rem auto 3rem auto',
+          padding: '0 1rem',
+          position: 'relative',
+          zIndex: 10
+        }}
+      >
+        <div
+          className="card"
+          style={{
+            backgroundColor: '#FFFFFF',
+            border: '1.5px solid var(--color-secondary)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-lg)',
+            padding: '1.75rem 2rem'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+            <span style={{ fontSize: '1.25rem' }}>✨</span>
+            <h2 style={{ fontSize: '1.2rem', margin: 0, color: 'var(--color-primary)' }}>
+              Check Stay Availability (12-Hour Billing Slots)
+            </h2>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '1.25rem',
+              alignItems: 'flex-end'
+            }}
+          >
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
+                Check-in Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                className="input-field"
+                value={quickCheckIn}
+                onChange={(e) => setQuickCheckIn(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
+                Check-out Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                className="input-field"
+                value={quickCheckOut}
+                onChange={(e) => setQuickCheckOut(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
+                Accommodation Preference
+              </label>
+              <select
+                className="input-field"
+                value={selectedAccType}
+                onChange={(e) => setSelectedAccType(e.target.value)}
+              >
+                <option value="ALL">All Available Options</option>
+                <option value="ROOM">Private Room (Rooms 1 & 2)</option>
+                <option value="HALL">Shared Hall (Single Beds)</option>
+              </select>
+            </div>
+
+            <div>
+              <Link
+                to={`/rooms${quickCheckIn ? `?checkIn=${encodeURIComponent(quickCheckIn)}&checkOut=${encodeURIComponent(quickCheckOut)}` : ''}`}
+                className="btn btn-primary"
+                style={{ width: '100%', padding: '0.75rem 1rem' }}
+              >
+                Search Options →
+              </Link>
+            </div>
+          </div>
+          <p style={{ margin: '0.75rem 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            ℹ️ All stays are calculated in standard 12-hour intervals for devotee convenience during darshan.
+          </p>
         </div>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem' }}>
+      </section>
+
+      {/* 3. Accommodation Inventory Cards */}
+      <section id="rooms" style={{ maxWidth: '1240px', margin: '0 auto', padding: '3rem 1.5rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <span style={{ fontSize: '0.85rem', textTransform: 'uppercase', color: 'var(--color-secondary)', fontWeight: 700, letterSpacing: '0.05em' }}>
+            Sacred Living
+          </span>
+          <h2 className="heading-serif" style={{ fontSize: '2.25rem', color: 'var(--color-primary)', marginTop: '0.25rem' }}>
+            Available Accommodations
+          </h2>
+          <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0.5rem auto 0 auto' }}>
+            Carefully curated rooms and clean hall beds designed for family peace and devotee pilgrimage comfort.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
           
-          <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center', borderTop: '4px solid var(--color-primary)' }}>
-            <div style={{ width: '80px', height: '80px', margin: '0 auto 1.5rem auto', background: 'rgba(255, 140, 0, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>
+          {/* Card 1: Room 1 */}
+          <div className="card card-maroon-accent" style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '1.75rem 1.5rem', flex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.35rem', margin: 0, color: 'var(--color-primary)' }}>Room 1</h3>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Private Family Suite</span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>₹1,000</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>/ 12 hours</span>
+                </div>
+              </div>
+
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '1.25rem' }}>
+                Spacious private room featuring an attached western bathroom, clean linen, and ample ventilation. Ideal for couples or small families visiting the shrine.
+              </p>
+
+              <div style={{ backgroundColor: 'var(--bg-main)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+                <div style={{ margin: '0.25rem 0' }}>👥 <strong>Capacity:</strong> Max 2 Adults & up to 2 Children (below 15)</div>
+                <div style={{ margin: '0.25rem 0' }}>🚿 <strong>Bathroom:</strong> Attached private bathroom with geyser</div>
+                <div style={{ margin: '0.25rem 0' }}>⚡ <strong>Amenities:</strong> Power backup, ceiling fan, RO water</div>
+              </div>
+
+              <Link to="/book/room1" className="btn btn-primary" style={{ width: '100%' }}>
+                Book Room 1
+              </Link>
             </div>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Comfortable Rooms</h3>
-            <p style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>Well-maintained private rooms and large air-conditioned halls designed for families and groups of all sizes.</p>
           </div>
 
-          <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center', borderTop: '4px solid var(--color-secondary)' }}>
-            <div style={{ width: '80px', height: '80px', margin: '0 auto 1.5rem auto', background: 'rgba(128, 0, 0, 0.08)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-secondary)' }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          {/* Card 2: Room 2 */}
+          <div className="card card-maroon-accent" style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '1.75rem 1.5rem', flex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.35rem', margin: 0, color: 'var(--color-primary)' }}>Room 2</h3>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Private Family Suite</span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>₹1,000</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>/ 12 hours</span>
+                </div>
+              </div>
+
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '1.25rem' }}>
+                Peaceful and quiet private room with attached bathroom, clean bedding, and private entrance. Designed for complete family privacy and spiritual tranquility.
+              </p>
+
+              <div style={{ backgroundColor: 'var(--bg-main)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+                <div style={{ margin: '0.25rem 0' }}>👥 <strong>Capacity:</strong> Max 2 Adults & up to 2 Children (below 15)</div>
+                <div style={{ margin: '0.25rem 0' }}>🚿 <strong>Bathroom:</strong> Attached private bathroom with geyser</div>
+                <div style={{ margin: '0.25rem 0' }}>⚡ <strong>Amenities:</strong> Power backup, ceiling fan, fresh towels</div>
+              </div>
+
+              <Link to="/book/room2" className="btn btn-primary" style={{ width: '100%' }}>
+                Book Room 2
+              </Link>
             </div>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Walking Distance</h3>
-            <p style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>Located just minutes away from the temple, making it incredibly convenient for early morning darshan and sevas.</p>
           </div>
 
-          <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center', borderTop: '4px solid var(--color-accent)' }}>
-            <div style={{ width: '80px', height: '80px', margin: '0 auto 1.5rem auto', background: 'rgba(255, 215, 0, 0.15)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#B7950B' }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          {/* Card 3: Shared Hall (5 Individual Beds) */}
+          <div className="card card-gold-accent" style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '1.75rem 1.5rem', flex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.35rem', margin: 0, color: 'var(--color-primary)' }}>Devotee Hall</h3>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>5 Independent Beds</span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-secondary)' }}>₹300</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>per bed / 12 hours</span>
+                </div>
+              </div>
+
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '1.25rem' }}>
+                Airy and well-kept community hall offering 5 independently bookable single cots with comfortable mattresses. Perfect for solo pilgrims or group members.
+              </p>
+
+              <div style={{ backgroundColor: 'var(--bg-main)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+                <div style={{ margin: '0.25rem 0' }}>🛏️ <strong>Beds:</strong> 5 Single cots (Bed #1 to #5) bookable individually</div>
+                <div style={{ margin: '0.25rem 0' }}>🚿 <strong>Bathroom:</strong> Clean shared normal bathroom</div>
+                <div style={{ margin: '0.25rem 0' }}>⚡ <strong>Amenities:</strong> Mobile charging points, ceiling fans</div>
+              </div>
+
+              <Link to="/book/hall" className="btn btn-gold" style={{ width: '100%' }}>
+                Select Hall Beds
+              </Link>
             </div>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Secure & Safe</h3>
-            <p style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>A completely safe and secure environment for your family with 24/7 dedicated support from the property owner.</p>
           </div>
 
         </div>
+
+        {/* Note: There is no small room */}
+        <div style={{ marginTop: '1.75rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+          📌 <em>Notice: We offer Room 1, Room 2, and the 5-Bed Hall only. There are no other room categories on this property.</em>
+        </div>
       </section>
+
+      {/* 4. Room Facilities & Amenities */}
+      <section id="facilities" style={{ backgroundColor: '#FFFDF9', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '4rem 1.5rem' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <span style={{ fontSize: '0.85rem', textTransform: 'uppercase', color: 'var(--color-secondary)', fontWeight: 700 }}>
+              Devotee Comfort
+            </span>
+            <h2 className="heading-serif" style={{ fontSize: '2rem', color: 'var(--color-primary)' }}>
+              Accommodation Facilities
+            </h2>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🚿</div>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '0.35rem' }}>Hot & Running Water</h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                24/7 uninterrupted water supply with water heaters/geysers for early morning temple snanam.
+              </p>
+            </div>
+
+            <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚡</div>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '0.35rem' }}>Power Backup</h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                Automatic inverter and generator backup ensuring light and fans during power outages.
+              </p>
+            </div>
+
+            <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🚰</div>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '0.35rem' }}>Pure RO Drinking Water</h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                Hygienic and purified drinking water available round the clock for all guests.
+              </p>
+            </div>
+
+            <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🚗</div>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '0.35rem' }}>Safe Vehicle Parking</h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                Spacious and secure parking space for four-wheelers and two-wheelers right at the property.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Booking Information & Policy */}
+      <section style={{ maxWidth: '1080px', margin: '0 auto', padding: '4rem 1.5rem' }}>
+        <div className="card" style={{ padding: '2.5rem', borderLeft: '5px solid var(--color-primary)' }}>
+          <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', marginBottom: '1rem' }}>
+            Important Booking & Confirmation Guidelines
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.6 }}>
+            <div>
+              <h4 style={{ color: 'var(--color-primary)', marginBottom: '0.4rem' }}>1. Slot Duration & Timings</h4>
+              <p style={{ margin: 0, color: 'var(--text-muted)' }}>
+                All room and bed bookings are scheduled in <strong>12-hour slots</strong>. Please specify your exact arrival and departure times so we can prepare your accommodation.
+              </p>
+            </div>
+            <div>
+              <h4 style={{ color: 'var(--color-primary)', marginBottom: '0.4rem' }}>2. Owner Verification Call</h4>
+              <p style={{ margin: 0, color: 'var(--text-muted)' }}>
+                After you submit your payment reference or PhonePe receipt, the property owner will personally call your mobile number to confirm your room and arrival details.
+              </p>
+            </div>
+            <div>
+              <h4 style={{ color: 'var(--color-primary)', marginBottom: '0.4rem' }}>3. Non-Cancellation Policy</h4>
+              <p style={{ margin: 0, color: 'var(--text-muted)' }}>
+                Once your booking has been verified and marked as <strong>CONFIRMED</strong> by the owner, it is securely locked and <strong>cannot be cancelled</strong>.
+              </p>
+            </div>
+            <div>
+              <h4 style={{ color: 'var(--color-primary)', marginBottom: '0.4rem' }}>4. ID Proof Requirement</h4>
+              <p style={{ margin: 0, color: 'var(--text-muted)' }}>
+                Every adult devotee checking in is requested to carry a government-issued photo ID (Aadhaar or Voter ID) for register entry.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Temple Location & Map */}
+      <section id="location" style={{ backgroundColor: '#FFFDF9', borderTop: '1px solid var(--border-color)', padding: '4rem 1.5rem' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+            <span style={{ fontSize: '0.85rem', textTransform: 'uppercase', color: 'var(--color-secondary)', fontWeight: 700 }}>
+              Convenient Proximity
+            </span>
+            <h2 className="heading-serif" style={{ fontSize: '2rem', color: 'var(--color-primary)' }}>
+              Walking Distance to Vadapalli Temple
+            </h2>
+            <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0.5rem auto 0 auto' }}>
+              Located just 200 meters from the famous Sri Venkateswara Swamy Temple (known as Chinnathirupathi).
+            </p>
+          </div>
+
+          <div className="card" style={{ padding: '2rem', backgroundColor: 'var(--bg-main)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)', marginBottom: '0.75rem' }}>
+                  Sri Venkateswara Swamy Sannidhi, Vadapalli
+                </h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                  Dr. B.R. Ambedkar Konaseema District, Andhra Pradesh 533237.<br />
+                  Devotees can easily reach the sanctum sanctorum within 3 minutes on foot for Suprabhata Seva and Sarva Darshanam without requiring local transport.
+                </p>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <a
+                    href="https://maps.google.com/?q=Vadapalli+Venkateswara+Swamy+Temple"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.65rem 1.25rem' }}
+                  >
+                    🗺️ Open in Google Maps
+                  </a>
+                  <a
+                    href="tel:918555085539"
+                    className="btn btn-primary"
+                    style={{ fontSize: '0.85rem', padding: '0.65rem 1.25rem' }}
+                  >
+                    📞 Call for Route Directions
+                  </a>
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center', backgroundColor: '#FFFFFF', padding: '1.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📍</div>
+                <h4 style={{ margin: 0, color: 'var(--color-primary)', fontSize: '1.1rem' }}>Location Landmark</h4>
+                <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Near Temple Car Street / Main Gopuram approach, Vadapalli.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. Contact & WhatsApp Direct Action */}
+      <section style={{ maxWidth: '850px', margin: '0 auto', padding: '4rem 1.5rem', textAlign: 'center' }}>
+        <h2 className="heading-serif" style={{ fontSize: '2rem', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>
+          Need Immediate Assistance or Have Questions?
+        </h2>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
+          Our property manager is available to help with your booking, custom group requirements, or arrival queries.
+        </p>
+
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <a
+            href="tel:918555085539"
+            className="btn btn-primary"
+            style={{ padding: '0.85rem 1.75rem', fontSize: '1rem' }}
+          >
+            📞 Call +91 85550 85539
+          </a>
+          <a
+            href="https://wa.me/918555085539?text=Namaste,%20I%20need%20assistance%20with%20Vadapalli%20Temple%20Accommodation."
+            target="_blank"
+            rel="noreferrer"
+            className="btn"
+            style={{
+              padding: '0.85rem 1.75rem',
+              fontSize: '1rem',
+              backgroundColor: '#15803D',
+              color: '#FFFFFF'
+            }}
+          >
+            💬 WhatsApp Us
+          </a>
+        </div>
+      </section>
+
+      {/* 8. Footer */}
+      <footer style={{ backgroundColor: '#1A1210', color: '#E2E8F0', padding: '3rem 1.5rem 2rem 1.5rem', borderTop: '3px solid var(--color-secondary)' }}>
+        <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem' }}>
+          <div>
+            <h3 style={{ color: '#FFFFFF', margin: 0, fontSize: '1.15rem' }}>
+              Vadapalli Temple Accommodation
+            </h3>
+            <p style={{ color: '#A0AEC0', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
+              Sri Venkateswara Swamy Temple Pilgrimage Lodging • Vadapalli, AP
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.85rem' }}>
+            <Link to="/status" style={{ color: '#E2E8F0' }}>Check Status</Link>
+            <Link to="/contact" style={{ color: '#E2E8F0' }}>Contact</Link>
+            <a href="#rooms" style={{ color: '#E2E8F0' }}>Rooms</a>
+          </div>
+        </div>
+
+        <div style={{ maxWidth: '1240px', margin: '2rem auto 0 auto', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', fontSize: '0.75rem', color: '#718096' }}>
+          <div>
+            © {new Date().getFullYear()} Vadapalli Sri Venkateswara Swamy Accommodation. All Rights Reserved.
+          </div>
+          <div>
+            Govt. ID verification mandatory at check-in.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

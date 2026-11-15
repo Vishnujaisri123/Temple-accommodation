@@ -58,4 +58,32 @@ router.patch('/:id/payment', async (req, res) => {
   }
 });
 
+// Customer Cancellation Request (Rejects if booking is already CONFIRMED)
+router.post('/:id/cancel', async (req, res) => {
+  try {
+    const booking = await Booking.findOne({ bookingId: req.params.id });
+    if (!booking) return res.status(404).json({ success: false, message: 'Booking not found.' });
+
+    // Strict policy: Confirmed bookings cannot be cancelled by customer
+    if (booking.bookingStatus === 'CONFIRMED') {
+      return res.status(403).json({
+        success: false,
+        message: 'Cancellation is not permitted. Once confirmed by the accommodation owner, bookings cannot be cancelled.'
+      });
+    }
+
+    if (booking.bookingStatus === 'REJECTED') {
+      return res.status(400).json({ success: false, message: 'This booking is already cancelled or rejected.' });
+    }
+
+    booking.bookingStatus = 'REJECTED';
+    booking.adminNotes = 'Cancelled by customer prior to confirmation.';
+    await booking.save();
+
+    res.json({ success: true, message: 'Your booking has been cancelled.' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 export default router;

@@ -8,20 +8,24 @@ export const connectDB = async () => {
   try {
     let mongoUri = process.env.MONGO_URI;
 
-    // Use in-memory MongoDB if no URI is provided (perfect for local dev testing)
-    if (!mongoUri) {
-      console.log('No MONGO_URI provided. Starting an in-memory MongoDB Replica Set for transactions...');
-      const replSet = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
-      mongoUri = replSet.getUri();
+    if (mongoUri) {
+      try {
+        console.log('Attempting to connect to MongoDB Atlas...');
+        const conn = await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 4000 });
+        console.log(`MongoDB Connected: ${conn.connection.host}`);
+        return;
+      } catch (atlasErr) {
+        console.warn(`Could not connect to Atlas (${(atlasErr as Error).message}). Falling back to local in-memory database...`);
+      }
     }
 
+    console.log('Starting an in-memory MongoDB Replica Set for local development...');
+    const replSet = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
+    mongoUri = replSet.getUri();
+
     const conn = await mongoose.connect(mongoUri);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-    
-    // Optional: Log that it's using a temporary database
-    if (!process.env.MONGO_URI) {
-      console.log('NOTE: You are using an in-memory database. Data will be cleared when the server restarts.');
-    }
+    console.log(`MongoDB Connected (In-Memory): ${conn.connection.host}`);
+    console.log('NOTE: You are using an in-memory database for local testing.');
 
   } catch (error) {
     console.error(`Error: ${(error as Error).message}`);

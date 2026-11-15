@@ -86,11 +86,40 @@ const BookingStatus = () => {
 
             {statusResult.status === 'CONFIRMED' ? (
               <div style={{ padding: '1.25rem', backgroundColor: '#F0FFF4', borderLeft: '4px solid #38A169', borderRadius: 'var(--radius-sm)', color: '#276749', fontWeight: 500 }}>
-                Your booking is confirmed. Confirmed bookings cannot be cancelled.
+                ✅ Your booking is confirmed. As per temple accommodation policy, confirmed bookings cannot be cancelled.
+              </div>
+            ) : statusResult.status === 'REJECTED' ? (
+              <div style={{ padding: '1.25rem', backgroundColor: '#FEF2F2', borderLeft: '4px solid #DC2626', borderRadius: 'var(--radius-sm)', color: '#991B1B', fontWeight: 500 }}>
+                ⛔ This booking was cancelled or rejected.
               </div>
             ) : (
-              <div style={{ padding: '1.25rem', backgroundColor: '#FFF5F5', borderLeft: '4px solid var(--color-primary)', borderRadius: 'var(--radius-sm)', color: 'var(--color-secondary)', fontWeight: 500 }}>
-                Your payment has been submitted. The owner will call you shortly to verify and confirm your booking.
+              <div>
+                <div style={{ padding: '1.25rem', backgroundColor: '#EFF6FF', borderLeft: '4px solid #2563EB', borderRadius: 'var(--radius-sm)', color: '#1E40AF', fontWeight: 500, marginBottom: '1rem' }}>
+                  ⏳ Your booking is awaiting owner verification. The accommodation owner will call you shortly to verify and confirm.
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!confirm('Are you sure you want to cancel this pending booking?')) return;
+                    try {
+                      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+                      const res = await fetch(`${API_BASE}/bookings/${statusResult.bookingId}/cancel`, { method: 'POST' });
+                      const d = await res.json();
+                      if (d.success) {
+                        alert('Booking cancelled.');
+                        setStatusResult({ ...statusResult, status: 'REJECTED' });
+                      } else {
+                        alert(d.message);
+                      }
+                    } catch {
+                      alert('Error cancelling booking.');
+                    }
+                  }}
+                  className="btn"
+                  style={{ width: '100%', backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FECACA', fontSize: '0.85rem' }}
+                >
+                  Cancel Pending Booking
+                </button>
               </div>
             )}
           </div>
