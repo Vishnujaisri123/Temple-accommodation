@@ -1,46 +1,42 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 
-// Lazy load the 3D cinematic scene so initial script parse is lightweight
-const CinematicTempleScene = lazy(() => import('../components/3d/CinematicTempleScene'));
+const CinematicTempleJourney = lazy(() => import('../components/3d/CinematicTempleJourney'));
 
-const SceneLoadingPlaceholder: React.FC = () => (
+const JourneyPlaceholder: React.FC = () => (
   <div
     style={{
+      width: '100%',
       height: '100vh',
-      width: '100vw',
-      backgroundColor: '#120B0A',
+      backgroundColor: '#120C0A',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      color: '#D4AF37',
-      textAlign: 'center',
-      padding: '2rem'
+      color: '#FFFDF9',
+      padding: '2rem',
+      textAlign: 'center'
     }}
   >
     <div
       style={{
         width: '46px',
         height: '46px',
-        border: '3px solid rgba(212, 175, 55, 0.25)',
-        borderTop: '3px solid #D4AF37',
+        border: '3px solid rgba(197, 160, 89, 0.3)',
+        borderTop: '3px solid #C5A059',
         borderRadius: '50%',
         animation: 'spin 1s linear infinite',
         marginBottom: '1rem'
       }}
     />
     <style>{`
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     `}</style>
-    <div style={{ fontSize: '1.2rem', fontWeight: 600, letterSpacing: '0.02em', color: '#FFFDF9' }}>
-      Entering Sri Venkateswara Swamy Temple
+    <div style={{ fontFamily: 'var(--font-telugu)', color: '#FFD700', fontSize: '1.25rem', marginBottom: '0.4rem' }}>
+      వాడపల్లి శ్రీ వేంకటేశ్వర స్వామి సన్నిధి
     </div>
-    <div style={{ color: '#D4AF37', fontSize: '0.85rem', marginTop: '0.35rem' }}>
-      Loading 3D Temple Sanctum Experience...
+    <div style={{ fontSize: '1rem', fontWeight: 600, letterSpacing: '0.04em' }}>
+      Loading 3D Cinematic Darshan Experience...
     </div>
   </div>
 );
@@ -53,17 +49,17 @@ const Home: React.FC = () => {
 
   return (
     <div className="animate-fade-in" style={{ backgroundColor: 'var(--bg-main)' }}>
-      {/* 1. Fullscreen Scroll-Driven 3D Temple Experience (Exterior -> Mandapam -> Sanctum -> Swamy Reveal) */}
-      <Suspense fallback={<SceneLoadingPlaceholder />}>
-        <CinematicTempleScene />
+      {/* 1. Full-Screen Cinematic 3D Temple & Sanctum Darshan Scroll Journey */}
+      <Suspense fallback={<JourneyPlaceholder />}>
+        <CinematicTempleJourney />
       </Suspense>
 
-      {/* 2. Quick Date & 12-Hour Slot Selector */}
+      {/* 2. Quick Date & Slot Selector (Smoothly transitions below the 3D journey) */}
       <section
         id="date-selector"
         style={{
           maxWidth: '1120px',
-          margin: '2rem auto 3rem auto',
+          margin: '3rem auto',
           padding: '0 1.25rem',
           position: 'relative',
           zIndex: 10
@@ -76,15 +72,19 @@ const Home: React.FC = () => {
             border: '1.5px solid var(--color-secondary)',
             borderRadius: 'var(--radius-md)',
             boxShadow: 'var(--shadow-lg)',
-            padding: '1.75rem 2rem'
+            padding: '2rem 2.25rem'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-            <span style={{ fontSize: '1.25rem' }}>✨</span>
-            <h2 style={{ fontSize: '1.2rem', margin: 0, color: 'var(--color-primary)' }}>
+            <span style={{ fontSize: '1.35rem' }}>🛕</span>
+            <h2 style={{ fontSize: '1.35rem', margin: 0, color: 'var(--color-primary)' }}>
               Check Stay Availability (12-Hour Billing Slots)
             </h2>
           </div>
+
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+            Book your accommodation just 200 meters from the temple. All stays are scheduled in 12-hour intervals for devotee convenience during darshan and sevas.
+          </p>
 
           <div
             style={{
@@ -143,9 +143,6 @@ const Home: React.FC = () => {
               </Link>
             </div>
           </div>
-          <p style={{ margin: '0.75rem 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            ℹ️ All stays are calculated in standard 12-hour intervals for devotee convenience during darshan.
-          </p>
         </div>
       </section>
 
