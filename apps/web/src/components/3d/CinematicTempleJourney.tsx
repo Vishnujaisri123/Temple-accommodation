@@ -20,17 +20,17 @@ interface Waypoint {
 
 const WAYPOINTS: Waypoint[] = [
   // Stage 1: Front exterior wide view - looking directly at front entrance arch
-  { t: 0.00, camPos: [0, 0.22, 2.25],  lookAt: [0, 0.00, 0] },
-  // Stage 2: Approaching entrance steps
-  { t: 0.20, camPos: [0, 0.06, 1.25],  lookAt: [0, -0.02, 0] },
-  // Stage 3: Entering through main doorway
-  { t: 0.45, camPos: [0, -0.01, 0.55], lookAt: [0, -0.04, -0.14] },
-  // Stage 4: Moving along inner pathway / mandapam
-  { t: 0.70, camPos: [0, -0.045, 0.32], lookAt: [0, -0.055, -0.14] },
-  // Stage 5: Approaching inner sanctum & deity reveal
-  { t: 0.88, camPos: [0, -0.052, 0.24], lookAt: [0, -0.055, -0.14] },
-  // Stage 6: Final dignified Darshan at eye-level showing full 3D deity from crown to peetham
-  { t: 1.00, camPos: [0, -0.055, 0.18], lookAt: [0, -0.055, -0.14] }
+  { t: 0.00, camPos: [0, 0.22, 2.25],  lookAt: [0, -0.05, 0] },
+  // Stage 2: Approaching entrance steps and descending
+  { t: 0.20, camPos: [0, 0.04, 1.35],  lookAt: [0, -0.12, 0] },
+  // Stage 3: Gliding down through the entrance doorway
+  { t: 0.45, camPos: [0, -0.10, 0.85], lookAt: [0, -0.18, 0] },
+  // Stage 4: Moving down along inner pathway towards down center
+  { t: 0.70, camPos: [0, -0.16, 0.60], lookAt: [0, -0.22, 0] },
+  // Stage 5: Approaching down-center sanctum as golden diya lights reveal Swamy
+  { t: 0.88, camPos: [0, -0.20, 0.48], lookAt: [0, -0.23, 0] },
+  // Stage 6: Final dignified Darshan at eye-level with Swamy in down center of temple
+  { t: 1.00, camPos: [0, -0.22, 0.40], lookAt: [0, -0.23, 0] }
 ];
 
 function interpolateWaypoints(t: number): { pos: [number, number, number]; look: [number, number, number] } {
@@ -194,45 +194,45 @@ const SceneContent: React.FC<SceneContentProps> = ({
         {/* 1. Temple Exterior & Interior Structure */}
         <primitive object={templeGltf.scene} />
 
-        {/* 2. Swamy Deity situated in the Inner Sanctum (Garbhalayam) */}
-        {/* Proportioned and lowered so the full sacred deity from crown to peetham is completely visible */}
+        {/* 2. Swamy Deity placed in the Down Center of the Temple */}
+        {/* Centered at (0, 0) in XZ and resting firmly on the temple floor at Y = -0.238 */}
         <group
-          position={[0, -0.055, -0.14]}
-          scale={[0.26, 0.26, 0.26]}
+          position={[0, -0.238, 0]}
+          scale={[0.30, 0.30, 0.30]}
         >
           <primitive object={swamyGltf.scene} />
         </group>
 
-        {/* 3. Sacred Golden Diya / Aarti Spotlights inside Sanctum */}
+        {/* 3. Sacred Golden Diya / Aarti Spotlights in the Down Center */}
         {/* Upper Aarti light illuminating divine crown and face */}
         <pointLight
           ref={swamyLightRef}
-          position={[0, 0.02, -0.08]}
+          position={[0, -0.10, 0.15]}
           color="#FFD700"
           intensity={0}
-          distance={1.6}
+          distance={1.8}
           decay={2}
         />
-        {/* Lower Diya light illuminating sacred lotus feet and peetham */}
+        {/* Lower Diya light illuminating sacred lotus feet on floor */}
         <pointLight
-          position={[0, -0.12, -0.08]}
+          position={[0, -0.32, 0.12]}
           color="#FFA500"
-          intensity={0.8}
-          distance={1.2}
+          intensity={0.85}
+          distance={1.4}
           decay={2}
         />
         {/* Side lamps illuminating Shankha and Chakra */}
         <pointLight
-          position={[0.09, -0.04, -0.10]}
+          position={[0.14, -0.22, 0.10]}
           color="#FF8C00"
-          intensity={0.65}
-          distance={0.9}
+          intensity={0.7}
+          distance={1.0}
         />
         <pointLight
-          position={[-0.09, -0.04, -0.10]}
+          position={[-0.14, -0.22, 0.10]}
           color="#FF8C00"
-          intensity={0.65}
-          distance={0.9}
+          intensity={0.7}
+          distance={1.0}
         />
       </group>
     </>
