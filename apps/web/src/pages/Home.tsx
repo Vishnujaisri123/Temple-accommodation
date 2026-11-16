@@ -1,41 +1,46 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 
-const TempleCanvas = lazy(() => import('../components/3d/TempleCanvas'));
+// Lazy load the 3D cinematic scene so initial script parse is lightweight
+const CinematicTempleScene = lazy(() => import('../components/3d/CinematicTempleScene'));
 
-const TemplePlaceholder: React.FC = () => (
+const SceneLoadingPlaceholder: React.FC = () => (
   <div
     style={{
-      width: '100%',
-      height: '100%',
-      minHeight: '350px',
-      borderRadius: '18px',
-      backgroundColor: '#FFFDF9',
-      border: '1px solid rgba(197, 160, 89, 0.35)',
+      height: '100vh',
+      width: '100vw',
+      backgroundColor: '#120B0A',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '2rem',
-      textAlign: 'center'
+      color: '#D4AF37',
+      textAlign: 'center',
+      padding: '2rem'
     }}
   >
     <div
       style={{
-        width: '42px',
-        height: '42px',
-        border: '3px solid #E8DFD5',
-        borderTop: '3px solid #701A1E',
+        width: '46px',
+        height: '46px',
+        border: '3px solid rgba(212, 175, 55, 0.25)',
+        borderTop: '3px solid #D4AF37',
         borderRadius: '50%',
         animation: 'spin 1s linear infinite',
         marginBottom: '1rem'
       }}
     />
-    <div style={{ color: '#701A1E', fontWeight: 600, fontSize: '0.95rem' }}>
-      Preparing 3D Temple Experience...
+    <style>{`
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `}</style>
+    <div style={{ fontSize: '1.2rem', fontWeight: 600, letterSpacing: '0.02em', color: '#FFFDF9' }}>
+      Entering Sri Venkateswara Swamy Temple
     </div>
-    <div style={{ color: '#6B5B52', fontSize: '0.8rem', marginTop: '0.25rem' }}>
-      Sri Venkateswara Swamy Sannidhi, Vadapalli
+    <div style={{ color: '#D4AF37', fontSize: '0.85rem', marginTop: '0.35rem' }}>
+      Loading 3D Temple Sanctum Experience...
     </div>
   </div>
 );
@@ -48,180 +53,17 @@ const Home: React.FC = () => {
 
   return (
     <div className="animate-fade-in" style={{ backgroundColor: 'var(--bg-main)' }}>
-      {/* 1. Cinematic 3D Temple Hero Section */}
-      <section
-        style={{
-          position: 'relative',
-          padding: '2.5rem 1.25rem 4rem 1.25rem',
-          backgroundColor: '#FFFDF9',
-          borderBottom: '1px solid var(--border-color)',
-          overflow: 'hidden'
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1240px',
-            margin: '0 auto',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '2.5rem',
-            alignItems: 'center'
-          }}
-        >
-          {/* Hero Left: Sacred Intro & CTAs */}
-          <div style={{ zIndex: 2 }}>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                backgroundColor: 'rgba(197, 160, 89, 0.12)',
-                border: '1px solid var(--color-secondary)',
-                padding: '0.35rem 0.85rem',
-                borderRadius: 'var(--radius-full)',
-                color: 'var(--color-primary)',
-                fontFamily: 'var(--font-telugu)',
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                marginBottom: '1rem'
-              }}
-            >
-              <span>🪔</span> వాడపల్లి శ్రీ వేంకటేశ్వర స్వామి సన్నిధి
-            </div>
+      {/* 1. Fullscreen Scroll-Driven 3D Temple Experience (Exterior -> Mandapam -> Sanctum -> Swamy Reveal) */}
+      <Suspense fallback={<SceneLoadingPlaceholder />}>
+        <CinematicTempleScene />
+      </Suspense>
 
-            <h1
-              className="heading-serif"
-              style={{
-                fontSize: 'clamp(2.2rem, 4.5vw, 3.4rem)',
-                color: 'var(--color-primary)',
-                lineHeight: 1.15,
-                marginBottom: '0.75rem',
-                letterSpacing: '-0.01em'
-              }}
-            >
-              Experience Divine Serenity
-            </h1>
-
-            <h2
-              style={{
-                fontSize: 'clamp(1.1rem, 2vw, 1.35rem)',
-                color: 'var(--color-secondary)',
-                fontWeight: 600,
-                lineHeight: 1.4,
-                marginBottom: '1rem'
-              }}
-            >
-              Stay close to Sri Venkateswara Swamy Temple, Vadapalli
-            </h2>
-
-            <p
-              style={{
-                fontSize: 'clamp(0.95rem, 1.5vw, 1.05rem)',
-                color: 'var(--text-muted)',
-                lineHeight: 1.6,
-                marginBottom: '1.5rem'
-              }}
-            >
-              Peaceful private suites and clean individual hall beds located within a <strong>3-minute walk (200 meters)</strong> from the sacred temple gopuram. Attend early morning Suprabhata Seva and darshan in complete peace with personalized owner care.
-            </p>
-
-            {/* Badges: Verified Distance & 12h Billing */}
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '0.75rem',
-                marginBottom: '2rem',
-                fontSize: '0.85rem'
-              }}
-            >
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                  backgroundColor: 'rgba(112, 26, 30, 0.06)',
-                  padding: '0.35rem 0.75rem',
-                  borderRadius: '6px',
-                  color: 'var(--color-primary)',
-                  fontWeight: 600
-                }}
-              >
-                <span>📍</span> 200m from Sanctum Sanctorum
-              </div>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                  backgroundColor: 'rgba(197, 160, 89, 0.15)',
-                  padding: '0.35rem 0.75rem',
-                  borderRadius: '6px',
-                  color: '#8C6B1F',
-                  fontWeight: 600
-                }}
-              >
-                <span>⏱️</span> Flexible 12-Hour Stays
-              </div>
-            </div>
-
-            {/* CTAs */}
-            <div
-              style={{
-                display: 'flex',
-                gap: '1rem',
-                flexWrap: 'wrap',
-                alignItems: 'center'
-              }}
-            >
-              <a
-                href="#date-selector"
-                className="btn btn-primary"
-                style={{
-                  padding: '0.9rem 2rem',
-                  fontSize: '1.05rem',
-                  minHeight: '48px'
-                }}
-              >
-                📅 Book Your Stay
-              </a>
-              <a
-                href="#rooms"
-                className="btn btn-secondary"
-                style={{
-                  padding: '0.9rem 1.75rem',
-                  fontSize: '1.05rem',
-                  minHeight: '48px',
-                  backgroundColor: '#FFFDF9'
-                }}
-              >
-                Explore Rooms & Beds
-              </a>
-            </div>
-          </div>
-
-          {/* Hero Right: 3D Temple Model Showcase */}
-          <div
-            style={{
-              position: 'relative',
-              width: '100%',
-              height: 'clamp(380px, 50vh, 520px)',
-              minHeight: '350px'
-            }}
-          >
-            <Suspense fallback={<TemplePlaceholder />}>
-              <TempleCanvas />
-            </Suspense>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. Quick Date & Slot Selector */}
+      {/* 2. Quick Date & 12-Hour Slot Selector */}
       <section
         id="date-selector"
         style={{
           maxWidth: '1120px',
-          margin: '-1.5rem auto 3rem auto',
+          margin: '2rem auto 3rem auto',
           padding: '0 1.25rem',
           position: 'relative',
           zIndex: 10
