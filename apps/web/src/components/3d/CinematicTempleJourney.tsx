@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, Suspense } from 'react';
+import React, { useRef, useEffect, useState, Suspense, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -9,6 +9,8 @@ gsap.registerPlugin(ScrollTrigger);
 
 // ----------------------------------------------------
 // 1. Camera Trajectory Waypoints Definition
+// Front entrance of temple is facing +Z after rotation.
+// Camera moves directly into the sanctum towards -Z.
 // ----------------------------------------------------
 interface Waypoint {
   t: number;
@@ -17,18 +19,18 @@ interface Waypoint {
 }
 
 const WAYPOINTS: Waypoint[] = [
-  // Stage 1: Front exterior wide view
-  { t: 0.00, camPos: [0, 0.36, 2.45],  lookAt: [0, 0.06, 0] },
-  // Stage 2: Approaching entrance
-  { t: 0.20, camPos: [0, 0.12, 1.25],  lookAt: [0, 0.03, 0] },
+  // Stage 1: Front exterior wide view - looking directly at front entrance arch
+  { t: 0.00, camPos: [0, 0.28, 2.30],  lookAt: [0, 0.02, 0] },
+  // Stage 2: Approaching entrance steps
+  { t: 0.20, camPos: [0, 0.10, 1.25],  lookAt: [0, 0.01, 0] },
   // Stage 3: Entering through main doorway
-  { t: 0.45, camPos: [0, 0.02, 0.48],  lookAt: [0, 0.01, -0.1] },
+  { t: 0.45, camPos: [0, 0.02, 0.45],  lookAt: [0, 0.00, -0.16] },
   // Stage 4: Moving along inner pathway / mandapam
-  { t: 0.70, camPos: [0, -0.01, 0.18], lookAt: [0, -0.02, -0.14] },
+  { t: 0.70, camPos: [0, -0.02, 0.15], lookAt: [0, -0.02, -0.18] },
   // Stage 5: Approaching inner sanctum & deity reveal
-  { t: 0.88, camPos: [0, -0.02, 0.02], lookAt: [0, -0.025, -0.14] },
+  { t: 0.88, camPos: [0, -0.03, -0.04], lookAt: [0, -0.03, -0.18] },
   // Stage 6: Final dignified Darshan at eye-level
-  { t: 1.00, camPos: [0, -0.024, -0.055], lookAt: [0, -0.028, -0.14] }
+  { t: 1.00, camPos: [0, -0.03, -0.10], lookAt: [0, -0.035, -0.18] }
 ];
 
 function interpolateWaypoints(t: number): { pos: [number, number, number]; look: [number, number, number] } {
@@ -67,18 +69,27 @@ function interpolateWaypoints(t: number): { pos: [number, number, number]; look:
 }
 
 // ----------------------------------------------------
-// 2. 3D Scene: Temple & Deity Models + Coordinated Camera
+// 2. 3D Scene: Unified Temple Complex & Coordinated Camera
 // ----------------------------------------------------
 interface SceneContentProps {
   progressRef: React.MutableRefObject<number>;
+  userYawRef: React.MutableRefObject<number>;
+  baseYawRef: React.MutableRefObject<number>;
   onProgressUpdate?: (p: number) => void;
 }
 
-const SceneContent: React.FC<SceneContentProps> = ({ progressRef, onProgressUpdate }) => {
+const SceneContent: React.FC<SceneContentProps> = ({
+  progressRef,
+  userYawRef,
+  baseYawRef,
+  onProgressUpdate
+}) => {
   const templeGltf = useGLTF('/models/temple.glb');
   const swamyGltf = useGLTF('/models/swamy.glb');
 
   const currentProgress = useRef(0);
+  const dampedYaw = useRef(0);
+  const complexGroupRef = useRef<THREE.Group>(null);
   const swamyLightRef = useRef<THREE.PointLight>(null);
 
   // Configure materials: double-sided rendering for interior walls
@@ -91,7 +102,7 @@ const SceneContent: React.FC<SceneContentProps> = ({ progressRef, onProgressUpda
           mesh.receiveShadow = true;
           const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
           materials.forEach((m) => {
-            m.side = THREE.DoubleSide; // Allows seeing inside when camera enters!
+            m.side = THREE.DoubleSide; // Allows seeing inside when camera enters
             if ('roughness' in m) {
               (m as THREE.MeshStandardMaterial).roughness = 0.55;
             }
@@ -145,62 +156,75 @@ const SceneContent: React.FC<SceneContentProps> = ({ progressRef, onProgressUpda
     state.camera.position.set(pos[0] + idleSwayX, pos[1] + idleSwayY, pos[2]);
     state.camera.lookAt(look[0], look[1], look[2]);
 
+    // Handle user drag & base rotation
+    // When devotee starts scrolling down into the temple (p > 0.08),
+    // user drag yaw smoothly re-aligns back to 0 so the journey enters straight
+    const targetYaw = p > 0.08 ? 0 : userYawRef.current;
+    dampedYaw.current = THREE.MathUtils.damp(dampedYaw.current, targetYaw, 4.5, delta);
+
+    if (complexGroupRef.current) {
+      complexGroupRef.current.rotation.y = baseYawRef.current + dampedYaw.current;
+    }
+
     // Dynamic Aarti / Diya golden light on Swamy deity
     if (swamyLightRef.current) {
       // Glow intensifies as devotee approaches the sanctum
       const sanctumFactor = THREE.MathUtils.smoothstep(p, 0.5, 0.95);
       const flicker = (Math.sin(state.clock.elapsedTime * 6) + Math.cos(state.clock.elapsedTime * 9)) * 0.08;
-      swamyLightRef.current.intensity = (1.5 + flicker) * sanctumFactor;
+      swamyLightRef.current.intensity = (1.6 + flicker) * sanctumFactor;
     }
   });
 
   return (
     <>
       {/* Daylight / Exterior Illumination */}
-      <ambientLight intensity={0.9} color="#FFFDF5" />
+      <ambientLight intensity={0.95} color="#FFFDF5" />
       <directionalLight
         position={[6, 10, 5]}
-        intensity={1.2}
+        intensity={1.25}
         color="#FFF6D8"
         castShadow
         shadow-mapSize={[1024, 1024]}
       />
       <hemisphereLight intensity={0.4} color="#FFF8EB" groundColor="#D4C8B5" />
 
-      {/* Temple Exterior & Interior Structure */}
-      <group position={[0, 0, 0]}>
+      {/* Unified Temple & Sanctum Complex */}
+      {/* Default base angle (-Math.PI / 2) brings front entrance (+X) directly facing the camera (+Z) */}
+      <group ref={complexGroupRef} position={[0, 0, 0]}>
+        {/* 1. Temple Exterior & Interior Structure */}
         <primitive object={templeGltf.scene} />
-      </group>
 
-      {/* Swamy Deity situated in the Inner Sanctum (Garbhalayam) */}
-      <group
-        position={[0, -0.05, -0.12]} // Positioned in the interior sanctum facing +Z
-        scale={[0.38, 0.38, 0.38]}     // Respectfully proportioned to fit sanctum peetham
-      >
-        <primitive object={swamyGltf.scene} />
-      </group>
+        {/* 2. Swamy Deity situated in the Inner Sanctum (Garbhalayam) */}
+        {/* Naturally aligned facing the entrance doorway along with temple structure */}
+        <group
+          position={[0, -0.06, -0.16]}
+          scale={[0.38, 0.38, 0.38]}
+        >
+          <primitive object={swamyGltf.scene} />
+        </group>
 
-      {/* Sacred Golden Diya / Aarti Spotlights inside Sanctum */}
-      <pointLight
-        ref={swamyLightRef}
-        position={[0, 0.02, -0.06]}
-        color="#FFD700"
-        intensity={0}
-        distance={1.5}
-        decay={2}
-      />
-      <pointLight
-        position={[0.08, -0.02, -0.08]}
-        color="#FF8C00"
-        intensity={0.6}
-        distance={0.8}
-      />
-      <pointLight
-        position={[-0.08, -0.02, -0.08]}
-        color="#FF8C00"
-        intensity={0.6}
-        distance={0.8}
-      />
+        {/* 3. Sacred Golden Diya / Aarti Spotlights inside Sanctum */}
+        <pointLight
+          ref={swamyLightRef}
+          position={[0, 0.02, -0.10]}
+          color="#FFD700"
+          intensity={0}
+          distance={1.5}
+          decay={2}
+        />
+        <pointLight
+          position={[0.08, -0.02, -0.14]}
+          color="#FF8C00"
+          intensity={0.6}
+          distance={0.8}
+        />
+        <pointLight
+          position={[-0.08, -0.02, -0.14]}
+          color="#FF8C00"
+          intensity={0.6}
+          distance={0.8}
+        />
+      </group>
     </>
   );
 };
@@ -263,10 +287,20 @@ interface CinematicTempleJourneyProps {
   onBookClick?: () => void;
 }
 
+const FRONT_VIEW_ANGLE = -Math.PI / 2; // Default true Front Entrance facing camera
+
 const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookClick }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<number>(0);
+  const userYawRef = useRef<number>(0);
+  const baseYawRef = useRef<number>(FRONT_VIEW_ANGLE);
+
   const [scrollProgress, setScrollProgress] = useState<number>(0);
+  const [activeAngleLabel, setActiveAngleLabel] = useState<string>('Front Entrance');
+
+  // Interactive mouse/touch drag state
+  const isDragging = useRef(false);
+  const startX = useRef(0);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -288,6 +322,50 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
       trigger.kill();
     };
   }, []);
+
+  // Quick preset angle switchers
+  const handleSetAngle = useCallback((angle: number, label: string) => {
+    baseYawRef.current = angle;
+    userYawRef.current = 0;
+    setActiveAngleLabel(label);
+  }, []);
+
+  const handleCycleAngle = useCallback(() => {
+    const angles = [
+      { angle: -Math.PI / 2, label: 'Front Entrance' },
+      { angle: 0, label: 'Side View (90°)' },
+      { angle: Math.PI / 2, label: 'Back View (180°)' },
+      { angle: Math.PI, label: 'Opposite Side (270°)' }
+    ];
+    const currentIdx = angles.findIndex(a => Math.abs(a.angle - baseYawRef.current) < 0.1);
+    const nextIdx = (currentIdx + 1) % angles.length;
+    handleSetAngle(angles[nextIdx].angle, angles[nextIdx].label);
+  }, [handleSetAngle]);
+
+  // Pointer drag for interactive exploration at Stage 1
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (scrollProgress < 0.18) {
+      isDragging.current = true;
+      startX.current = e.clientX;
+      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    }
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (isDragging.current && scrollProgress < 0.18) {
+      const delta = e.clientX - startX.current;
+      startX.current = e.clientX;
+      userYawRef.current += delta * 0.007;
+      setActiveAngleLabel('Custom Angle');
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    isDragging.current = false;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    } catch {}
+  };
 
   const handleContinueToBooking = () => {
     if (onBookClick) {
@@ -325,7 +403,7 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
         {/* Full-Screen 3D Canvas */}
         <Canvas
           shadows
-          camera={{ position: [0, 0.36, 2.45], fov: 40, near: 0.02, far: 40 }}
+          camera={{ position: [0, 0.28, 2.30], fov: 40, near: 0.02, far: 40 }}
           dpr={[1, 1.75]} // Adaptive DPR for battery and mobile optimization
           gl={{
             powerPreference: 'high-performance',
@@ -341,7 +419,11 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
           }}
         >
           <Suspense fallback={<JourneyLoader />}>
-            <SceneContent progressRef={progressRef} />
+            <SceneContent
+              progressRef={progressRef}
+              userYawRef={userYawRef}
+              baseYawRef={baseYawRef}
+            />
           </Suspense>
         </Canvas>
 
@@ -349,6 +431,10 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
         {/* STAGE 1 OVERLAY (0% to 18% Scroll): Exterior Welcome */}
         {/* ---------------------------------------------------- */}
         <div
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
           style={{
             position: 'absolute',
             inset: 0,
@@ -361,9 +447,75 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
             alignItems: 'center',
             padding: '4rem 1.5rem 3rem 1.5rem',
             textAlign: 'center',
-            background: 'radial-gradient(circle at 50% 50%, rgba(26, 18, 16, 0.2) 0%, rgba(18, 12, 10, 0.65) 100%)'
+            background: 'radial-gradient(circle at 50% 50%, rgba(26, 18, 16, 0.2) 0%, rgba(18, 12, 10, 0.65) 100%)',
+            cursor: scrollProgress < 0.18 ? 'grab' : 'default',
+            userSelect: 'none'
           }}
         >
+          {/* Top Quick Angle Controls */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '1.25rem',
+              right: '1.25rem',
+              zIndex: 35,
+              display: 'flex',
+              gap: '0.5rem',
+              flexWrap: 'wrap',
+              justifyContent: 'flex-end'
+            }}
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSetAngle(FRONT_VIEW_ANGLE, 'Front Entrance');
+              }}
+              style={{
+                padding: '0.4rem 0.9rem',
+                fontSize: '0.8rem',
+                borderRadius: '9999px',
+                backgroundColor: activeAngleLabel === 'Front Entrance' ? '#701A1E' : 'rgba(26, 18, 16, 0.85)',
+                border: '1.5px solid #C5A059',
+                color: '#FFD700',
+                cursor: 'pointer',
+                backdropFilter: 'blur(8px)',
+                fontWeight: 600,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem'
+              }}
+              title="Reset to True Front Entrance View"
+            >
+              <span>🎯</span> Front View
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCycleAngle();
+              }}
+              style={{
+                padding: '0.4rem 0.85rem',
+                fontSize: '0.8rem',
+                borderRadius: '9999px',
+                backgroundColor: 'rgba(26, 18, 16, 0.85)',
+                border: '1px solid rgba(197, 160, 89, 0.5)',
+                color: '#FFFDF9',
+                cursor: 'pointer',
+                backdropFilter: 'blur(8px)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem'
+              }}
+              title="Rotate View by 90°"
+            >
+              <span>🔄</span> Rotate 90°
+            </button>
+          </div>
+
           <div style={{ maxWidth: '820px', marginTop: '2rem' }}>
             <div
               style={{
@@ -409,6 +561,22 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
             >
               A Sacred Virtual Darshan of Sri Venkateswara Swamy, Vadapalli. Stay just 200 meters from this divine sanctum.
             </p>
+
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.8rem',
+                color: '#C5A059',
+                backgroundColor: 'rgba(26, 18, 16, 0.7)',
+                padding: '0.3rem 0.85rem',
+                borderRadius: '9999px',
+                border: '1px solid rgba(197, 160, 89, 0.3)'
+              }}
+            >
+              <span>👆</span> Drag horizontally to explore 3D temple ({activeAngleLabel})
+            </div>
           </div>
 
           {/* Bottom Scroll Prompt */}
