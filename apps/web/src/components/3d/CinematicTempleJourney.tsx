@@ -20,17 +20,17 @@ interface Waypoint {
 
 const WAYPOINTS: Waypoint[] = [
   // Stage 1: Front exterior wide view - looking directly at front entrance arch
-  { t: 0.00, camPos: [0, 0.28, 2.30],  lookAt: [0, 0.02, 0] },
+  { t: 0.00, camPos: [0, 0.22, 2.25],  lookAt: [0, 0.00, 0] },
   // Stage 2: Approaching entrance steps
-  { t: 0.20, camPos: [0, 0.10, 1.25],  lookAt: [0, 0.01, 0] },
+  { t: 0.20, camPos: [0, 0.06, 1.25],  lookAt: [0, -0.02, 0] },
   // Stage 3: Entering through main doorway
-  { t: 0.45, camPos: [0, 0.02, 0.45],  lookAt: [0, 0.00, -0.16] },
+  { t: 0.45, camPos: [0, -0.01, 0.55], lookAt: [0, -0.04, -0.14] },
   // Stage 4: Moving along inner pathway / mandapam
-  { t: 0.70, camPos: [0, -0.02, 0.15], lookAt: [0, -0.02, -0.18] },
+  { t: 0.70, camPos: [0, -0.045, 0.32], lookAt: [0, -0.055, -0.14] },
   // Stage 5: Approaching inner sanctum & deity reveal
-  { t: 0.88, camPos: [0, -0.03, -0.04], lookAt: [0, -0.03, -0.18] },
-  // Stage 6: Final dignified Darshan at eye-level
-  { t: 1.00, camPos: [0, -0.03, -0.10], lookAt: [0, -0.035, -0.18] }
+  { t: 0.88, camPos: [0, -0.052, 0.24], lookAt: [0, -0.055, -0.14] },
+  // Stage 6: Final dignified Darshan at eye-level showing full 3D deity from crown to peetham
+  { t: 1.00, camPos: [0, -0.055, 0.18], lookAt: [0, -0.055, -0.14] }
 ];
 
 function interpolateWaypoints(t: number): { pos: [number, number, number]; look: [number, number, number] } {
@@ -195,34 +195,44 @@ const SceneContent: React.FC<SceneContentProps> = ({
         <primitive object={templeGltf.scene} />
 
         {/* 2. Swamy Deity situated in the Inner Sanctum (Garbhalayam) */}
-        {/* Naturally aligned facing the entrance doorway along with temple structure */}
+        {/* Proportioned and lowered so the full sacred deity from crown to peetham is completely visible */}
         <group
-          position={[0, -0.06, -0.16]}
-          scale={[0.38, 0.38, 0.38]}
+          position={[0, -0.055, -0.14]}
+          scale={[0.26, 0.26, 0.26]}
         >
           <primitive object={swamyGltf.scene} />
         </group>
 
         {/* 3. Sacred Golden Diya / Aarti Spotlights inside Sanctum */}
+        {/* Upper Aarti light illuminating divine crown and face */}
         <pointLight
           ref={swamyLightRef}
-          position={[0, 0.02, -0.10]}
+          position={[0, 0.02, -0.08]}
           color="#FFD700"
           intensity={0}
-          distance={1.5}
+          distance={1.6}
           decay={2}
         />
+        {/* Lower Diya light illuminating sacred lotus feet and peetham */}
         <pointLight
-          position={[0.08, -0.02, -0.14]}
+          position={[0, -0.12, -0.08]}
+          color="#FFA500"
+          intensity={0.8}
+          distance={1.2}
+          decay={2}
+        />
+        {/* Side lamps illuminating Shankha and Chakra */}
+        <pointLight
+          position={[0.09, -0.04, -0.10]}
           color="#FF8C00"
-          intensity={0.6}
-          distance={0.8}
+          intensity={0.65}
+          distance={0.9}
         />
         <pointLight
-          position={[-0.08, -0.02, -0.14]}
+          position={[-0.09, -0.04, -0.10]}
           color="#FF8C00"
-          intensity={0.6}
-          distance={0.8}
+          intensity={0.65}
+          distance={0.9}
         />
       </group>
     </>
@@ -403,7 +413,7 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
         {/* Full-Screen 3D Canvas */}
         <Canvas
           shadows
-          camera={{ position: [0, 0.28, 2.30], fov: 40, near: 0.02, far: 40 }}
+          camera={{ position: [0, 0.22, 2.25], fov: 46, near: 0.02, far: 40 }}
           dpr={[1, 1.75]} // Adaptive DPR for battery and mobile optimization
           gl={{
             powerPreference: 'high-performance',
@@ -714,51 +724,58 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
             </div>
           </div>
 
-          {/* Bottom Darshan Actions */}
+          {/* Bottom Sleek Darshan Bar - Compact to leave full 3D Swamy visible from head to toe */}
           <div
             style={{
-              maxWidth: '650px',
-              backgroundColor: 'rgba(26, 18, 16, 0.82)',
+              maxWidth: '680px',
+              width: '92%',
+              backgroundColor: 'rgba(26, 18, 16, 0.88)',
               backdropFilter: 'blur(12px)',
               border: '1.5px solid #C5A059',
               borderRadius: '16px',
-              padding: '1.5rem 2rem',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.6)'
+              padding: '0.85rem 1.4rem',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
+              marginBottom: '0.75rem'
             }}
           >
-            <h2 style={{ fontSize: '1.35rem', color: '#FFD700', margin: '0 0 0.5rem 0', fontWeight: 700 }}>
-              Blessed Pilgrimage at Vadapalli
-            </h2>
-            <p style={{ color: '#E2E8F0', fontSize: '0.9rem', lineHeight: 1.5, margin: '0 0 1.25rem 0' }}>
-              Stay just 200 meters from Sri Venkateswara Swamy Temple. Book your clean, peaceful room or hall bed for your family pilgrimage.
-            </p>
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                onClick={handleContinueToBooking}
-                className="btn btn-primary"
-                style={{
-                  padding: '0.75rem 1.75rem',
-                  fontSize: '0.95rem',
-                  backgroundColor: '#701A1E',
-                  border: '1px solid #C5A059'
-                }}
-              >
-                📅 Book Accommodation Below ↓
-              </button>
-              <a
-                href="https://wa.me/918555085539?text=Namaste,%20I%20would%20like%20to%20inquire%20about%20temple%20accommodation."
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-secondary"
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  fontSize: '0.95rem',
-                  borderColor: '#C5A059',
-                  color: '#FFD700'
-                }}
-              >
-                💬 WhatsApp Owner
-              </a>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ textAlign: 'left', flex: 1, minWidth: '220px' }}>
+                <div style={{ fontSize: '1.05rem', color: '#FFD700', fontWeight: 700, lineHeight: 1.2 }}>
+                  Blessed Pilgrimage at Vadapalli
+                </div>
+                <div style={{ color: '#E2E8F0', fontSize: '0.8rem', marginTop: '0.2rem' }}>
+                  Stay just 200m from Sri Venkateswara Swamy Temple.
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={handleContinueToBooking}
+                  className="btn btn-primary"
+                  style={{
+                    padding: '0.55rem 1.25rem',
+                    fontSize: '0.88rem',
+                    backgroundColor: '#701A1E',
+                    border: '1px solid #C5A059'
+                  }}
+                >
+                  📅 Book Room Below ↓
+                </button>
+                <a
+                  href="https://wa.me/918555085539?text=Namaste,%20I%20would%20like%20to%20inquire%20about%20temple%20accommodation."
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-secondary"
+                  style={{
+                    padding: '0.55rem 1.1rem',
+                    fontSize: '0.88rem',
+                    borderColor: '#C5A059',
+                    color: '#FFD700'
+                  }}
+                >
+                  💬 WhatsApp
+                </a>
+              </div>
             </div>
           </div>
         </div>
