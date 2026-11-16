@@ -22,15 +22,15 @@ const WAYPOINTS: Waypoint[] = [
   // Stage 1: Front exterior wide view - looking directly at front entrance arch
   { t: 0.00, camPos: [0, 0.22, 2.25],  lookAt: [0, -0.05, 0] },
   // Stage 2: Approaching entrance steps and descending
-  { t: 0.20, camPos: [0, 0.04, 1.35],  lookAt: [0, -0.12, 0] },
+  { t: 0.20, camPos: [0, 0.04, 1.35],  lookAt: [0, -0.15, 0] },
   // Stage 3: Gliding down through the entrance doorway
-  { t: 0.45, camPos: [0, -0.10, 0.85], lookAt: [0, -0.18, 0] },
+  { t: 0.45, camPos: [0, -0.12, 0.85], lookAt: [0, -0.22, 0] },
   // Stage 4: Moving down along inner pathway towards down center
-  { t: 0.70, camPos: [0, -0.16, 0.60], lookAt: [0, -0.22, 0] },
-  // Stage 5: Approaching down-center sanctum as golden diya lights reveal Swamy
-  { t: 0.88, camPos: [0, -0.20, 0.48], lookAt: [0, -0.23, 0] },
+  { t: 0.70, camPos: [0, -0.20, 0.55], lookAt: [0, -0.27, 0] },
+  // Stage 5: Approaching down-center sanctum to reveal Swamy
+  { t: 0.88, camPos: [0, -0.26, 0.40], lookAt: [0, -0.29, 0] },
   // Stage 6: Final dignified Darshan at eye-level with Swamy in down center of temple
-  { t: 1.00, camPos: [0, -0.22, 0.40], lookAt: [0, -0.23, 0] }
+  { t: 1.00, camPos: [0, -0.28, 0.32], lookAt: [0, -0.29, 0] }
 ];
 
 function interpolateWaypoints(t: number): { pos: [number, number, number]; look: [number, number, number] } {
@@ -90,7 +90,6 @@ const SceneContent: React.FC<SceneContentProps> = ({
   const currentProgress = useRef(0);
   const dampedYaw = useRef(0);
   const complexGroupRef = useRef<THREE.Group>(null);
-  const swamyLightRef = useRef<THREE.PointLight>(null);
 
   // Configure materials: double-sided rendering for interior walls
   useEffect(() => {
@@ -122,8 +121,8 @@ const SceneContent: React.FC<SceneContentProps> = ({
             m.side = THREE.FrontSide;
             if ('roughness' in m) {
               const stdMat = m as THREE.MeshStandardMaterial;
-              stdMat.roughness = 0.35;
-              stdMat.metalness = 0.15;
+              stdMat.roughness = 0.5;
+              stdMat.metalness = 0.05;
             }
           });
         }
@@ -165,14 +164,6 @@ const SceneContent: React.FC<SceneContentProps> = ({
     if (complexGroupRef.current) {
       complexGroupRef.current.rotation.y = baseYawRef.current + dampedYaw.current;
     }
-
-    // Dynamic Aarti / Diya golden light on Swamy deity
-    if (swamyLightRef.current) {
-      // Glow intensifies as devotee approaches the sanctum
-      const sanctumFactor = THREE.MathUtils.smoothstep(p, 0.5, 0.95);
-      const flicker = (Math.sin(state.clock.elapsedTime * 6) + Math.cos(state.clock.elapsedTime * 9)) * 0.08;
-      swamyLightRef.current.intensity = (1.6 + flicker) * sanctumFactor;
-    }
   });
 
   return (
@@ -186,7 +177,7 @@ const SceneContent: React.FC<SceneContentProps> = ({
         castShadow
         shadow-mapSize={[1024, 1024]}
       />
-      <hemisphereLight intensity={0.4} color="#FFF8EB" groundColor="#D4C8B5" />
+      <hemisphereLight intensity={0.45} color="#FFF8EB" groundColor="#D4C8B5" />
 
       {/* Unified Temple & Sanctum Complex */}
       {/* Default base angle (-Math.PI / 2) brings front entrance (+X) directly facing the camera (+Z) */}
@@ -195,45 +186,13 @@ const SceneContent: React.FC<SceneContentProps> = ({
         <primitive object={templeGltf.scene} />
 
         {/* 2. Swamy Deity placed in the Down Center of the Temple */}
-        {/* Centered at (0, 0) in XZ and resting firmly on the temple floor at Y = -0.238 */}
+        {/* Reduced size and resting naturally on the temple floor */}
         <group
-          position={[0, -0.238, 0]}
-          scale={[0.30, 0.30, 0.30]}
+          position={[0, -0.297, 0]}
+          scale={[0.18, 0.18, 0.18]}
         >
           <primitive object={swamyGltf.scene} />
         </group>
-
-        {/* 3. Sacred Golden Diya / Aarti Spotlights in the Down Center */}
-        {/* Upper Aarti light illuminating divine crown and face */}
-        <pointLight
-          ref={swamyLightRef}
-          position={[0, -0.10, 0.15]}
-          color="#FFD700"
-          intensity={0}
-          distance={1.8}
-          decay={2}
-        />
-        {/* Lower Diya light illuminating sacred lotus feet on floor */}
-        <pointLight
-          position={[0, -0.32, 0.12]}
-          color="#FFA500"
-          intensity={0.85}
-          distance={1.4}
-          decay={2}
-        />
-        {/* Side lamps illuminating Shankha and Chakra */}
-        <pointLight
-          position={[0.14, -0.22, 0.10]}
-          color="#FF8C00"
-          intensity={0.7}
-          distance={1.0}
-        />
-        <pointLight
-          position={[-0.14, -0.22, 0.10]}
-          color="#FF8C00"
-          intensity={0.7}
-          distance={1.0}
-        />
       </group>
     </>
   );
