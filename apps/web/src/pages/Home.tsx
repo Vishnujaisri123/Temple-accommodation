@@ -1,5 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
+
+const TempleCanvas = lazy(() => import('../components/3d/TempleCanvas'));
+
+const TemplePlaceholder: React.FC = () => (
+  <div
+    style={{
+      width: '100%',
+      height: '100%',
+      minHeight: '350px',
+      borderRadius: '18px',
+      backgroundColor: '#FFFDF9',
+      border: '1px solid rgba(197, 160, 89, 0.35)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '2rem',
+      textAlign: 'center'
+    }}
+  >
+    <div
+      style={{
+        width: '42px',
+        height: '42px',
+        border: '3px solid #E8DFD5',
+        borderTop: '3px solid #701A1E',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite',
+        marginBottom: '1rem'
+      }}
+    />
+    <div style={{ color: '#701A1E', fontWeight: 600, fontSize: '0.95rem' }}>
+      Preparing 3D Temple Experience...
+    </div>
+    <div style={{ color: '#6B5B52', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+      Sri Venkateswara Swamy Sannidhi, Vadapalli
+    </div>
+  </div>
+);
 
 const Home: React.FC = () => {
   // Quick date selector state
@@ -9,79 +48,170 @@ const Home: React.FC = () => {
 
   return (
     <div className="animate-fade-in" style={{ backgroundColor: 'var(--bg-main)' }}>
-      {/* 1. Hero Section */}
+      {/* 1. Cinematic 3D Temple Hero Section */}
       <section
         style={{
           position: 'relative',
-          padding: '4.5rem 1.5rem 5.5rem 1.5rem',
+          padding: '2.5rem 1.25rem 4rem 1.25rem',
           backgroundColor: '#FFFDF9',
           borderBottom: '1px solid var(--border-color)',
-          textAlign: 'center',
           overflow: 'hidden'
         }}
       >
-        {/* Subtle decorative gold line */}
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              backgroundColor: 'rgba(197, 160, 89, 0.12)',
-              border: '1px solid var(--color-secondary)',
-              padding: '0.4rem 1rem',
-              borderRadius: 'var(--radius-full)',
-              color: 'var(--color-primary)',
-              fontFamily: 'var(--font-telugu)',
-              fontSize: '1rem',
-              fontWeight: 600,
-              marginBottom: '1.25rem'
-            }}
-          >
-            <span>🪔</span> వాడపల్లి శ్రీ వేంకటేశ్వర స్వామి సన్నిధికి స్వాగతం
+        <div
+          style={{
+            maxWidth: '1240px',
+            margin: '0 auto',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '2.5rem',
+            alignItems: 'center'
+          }}
+        >
+          {/* Hero Left: Sacred Intro & CTAs */}
+          <div style={{ zIndex: 2 }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                backgroundColor: 'rgba(197, 160, 89, 0.12)',
+                border: '1px solid var(--color-secondary)',
+                padding: '0.35rem 0.85rem',
+                borderRadius: 'var(--radius-full)',
+                color: 'var(--color-primary)',
+                fontFamily: 'var(--font-telugu)',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                marginBottom: '1rem'
+              }}
+            >
+              <span>🪔</span> వాడపల్లి శ్రీ వేంకటేశ్వర స్వామి సన్నిధి
+            </div>
+
+            <h1
+              className="heading-serif"
+              style={{
+                fontSize: 'clamp(2.2rem, 4.5vw, 3.4rem)',
+                color: 'var(--color-primary)',
+                lineHeight: 1.15,
+                marginBottom: '0.75rem',
+                letterSpacing: '-0.01em'
+              }}
+            >
+              Experience Divine Serenity
+            </h1>
+
+            <h2
+              style={{
+                fontSize: 'clamp(1.1rem, 2vw, 1.35rem)',
+                color: 'var(--color-secondary)',
+                fontWeight: 600,
+                lineHeight: 1.4,
+                marginBottom: '1rem'
+              }}
+            >
+              Stay close to Sri Venkateswara Swamy Temple, Vadapalli
+            </h2>
+
+            <p
+              style={{
+                fontSize: 'clamp(0.95rem, 1.5vw, 1.05rem)',
+                color: 'var(--text-muted)',
+                lineHeight: 1.6,
+                marginBottom: '1.5rem'
+              }}
+            >
+              Peaceful private suites and clean individual hall beds located within a <strong>3-minute walk (200 meters)</strong> from the sacred temple gopuram. Attend early morning Suprabhata Seva and darshan in complete peace with personalized owner care.
+            </p>
+
+            {/* Badges: Verified Distance & 12h Billing */}
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
+                marginBottom: '2rem',
+                fontSize: '0.85rem'
+              }}
+            >
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  backgroundColor: 'rgba(112, 26, 30, 0.06)',
+                  padding: '0.35rem 0.75rem',
+                  borderRadius: '6px',
+                  color: 'var(--color-primary)',
+                  fontWeight: 600
+                }}
+              >
+                <span>📍</span> 200m from Sanctum Sanctorum
+              </div>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  backgroundColor: 'rgba(197, 160, 89, 0.15)',
+                  padding: '0.35rem 0.75rem',
+                  borderRadius: '6px',
+                  color: '#8C6B1F',
+                  fontWeight: 600
+                }}
+              >
+                <span>⏱️</span> Flexible 12-Hour Stays
+              </div>
+            </div>
+
+            {/* CTAs */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '1rem',
+                flexWrap: 'wrap',
+                alignItems: 'center'
+              }}
+            >
+              <a
+                href="#date-selector"
+                className="btn btn-primary"
+                style={{
+                  padding: '0.9rem 2rem',
+                  fontSize: '1.05rem',
+                  minHeight: '48px'
+                }}
+              >
+                📅 Book Your Stay
+              </a>
+              <a
+                href="#rooms"
+                className="btn btn-secondary"
+                style={{
+                  padding: '0.9rem 1.75rem',
+                  fontSize: '1.05rem',
+                  minHeight: '48px',
+                  backgroundColor: '#FFFDF9'
+                }}
+              >
+                Explore Rooms & Beds
+              </a>
+            </div>
           </div>
 
-          <h1
-            className="heading-serif"
+          {/* Hero Right: 3D Temple Model Showcase */}
+          <div
             style={{
-              fontSize: 'clamp(2.1rem, 5vw, 3.25rem)',
-              color: 'var(--color-primary)',
-              lineHeight: 1.15,
-              marginBottom: '1rem'
+              position: 'relative',
+              width: '100%',
+              height: 'clamp(380px, 50vh, 520px)',
+              minHeight: '350px'
             }}
           >
-            Vadapalli Temple Accommodation
-          </h1>
-
-          <p
-            style={{
-              fontSize: 'clamp(1rem, 2vw, 1.2rem)',
-              color: 'var(--text-muted)',
-              maxWidth: '680px',
-              margin: '0 auto 2.25rem auto',
-              lineHeight: 1.6
-            }}
-          >
-            Peaceful, clean, and sacred lodging just a 3-minute walk from the holy Sri Venkateswara Swamy Temple. Dedicated family rooms and individual hall beds with direct owner care.
-          </p>
-
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a
-              href="#date-selector"
-              className="btn btn-primary"
-              style={{ padding: '0.85rem 2rem', fontSize: '1.05rem' }}
-            >
-              📅 Check Availability & Book
-            </a>
-            <a
-              href="https://wa.me/918555085539?text=Namaste,%20I%20would%20like%20to%20inquire%20about%20accommodation%20in%20Vadapalli."
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-secondary"
-              style={{ padding: '0.85rem 2rem', fontSize: '1.05rem', backgroundColor: '#FFFDF9' }}
-            >
-              💬 WhatsApp Owner
-            </a>
+            <Suspense fallback={<TemplePlaceholder />}>
+              <TempleCanvas />
+            </Suspense>
           </div>
         </div>
       </section>
@@ -90,9 +220,9 @@ const Home: React.FC = () => {
       <section
         id="date-selector"
         style={{
-          maxWidth: '1080px',
-          margin: '-2rem auto 3rem auto',
-          padding: '0 1rem',
+          maxWidth: '1120px',
+          margin: '-1.5rem auto 3rem auto',
+          padding: '0 1.25rem',
           position: 'relative',
           zIndex: 10
         }}
@@ -165,7 +295,7 @@ const Home: React.FC = () => {
               <Link
                 to={`/rooms${quickCheckIn ? `?checkIn=${encodeURIComponent(quickCheckIn)}&checkOut=${encodeURIComponent(quickCheckOut)}` : ''}`}
                 className="btn btn-primary"
-                style={{ width: '100%', padding: '0.75rem 1rem' }}
+                style={{ width: '100%', padding: '0.75rem 1rem', minHeight: '44px' }}
               >
                 Search Options →
               </Link>
@@ -217,7 +347,7 @@ const Home: React.FC = () => {
                 <div style={{ margin: '0.25rem 0' }}>⚡ <strong>Amenities:</strong> Power backup, ceiling fan, RO water</div>
               </div>
 
-              <Link to="/book/room1" className="btn btn-primary" style={{ width: '100%' }}>
+              <Link to="/book/room1" className="btn btn-primary" style={{ width: '100%', minHeight: '44px' }}>
                 Book Room 1
               </Link>
             </div>
@@ -247,7 +377,7 @@ const Home: React.FC = () => {
                 <div style={{ margin: '0.25rem 0' }}>⚡ <strong>Amenities:</strong> Power backup, ceiling fan, fresh towels</div>
               </div>
 
-              <Link to="/book/room2" className="btn btn-primary" style={{ width: '100%' }}>
+              <Link to="/book/room2" className="btn btn-primary" style={{ width: '100%', minHeight: '44px' }}>
                 Book Room 2
               </Link>
             </div>
@@ -277,7 +407,7 @@ const Home: React.FC = () => {
                 <div style={{ margin: '0.25rem 0' }}>⚡ <strong>Amenities:</strong> Mobile charging points, ceiling fans</div>
               </div>
 
-              <Link to="/book/hall" className="btn btn-gold" style={{ width: '100%' }}>
+              <Link to="/book/hall" className="btn btn-gold" style={{ width: '100%', minHeight: '44px' }}>
                 Select Hall Beds
               </Link>
             </div>
@@ -405,14 +535,14 @@ const Home: React.FC = () => {
                     target="_blank"
                     rel="noreferrer"
                     className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.65rem 1.25rem' }}
+                    style={{ fontSize: '0.85rem', padding: '0.65rem 1.25rem', minHeight: '44px' }}
                   >
                     🗺️ Open in Google Maps
                   </a>
                   <a
                     href="tel:918555085539"
                     className="btn btn-primary"
-                    style={{ fontSize: '0.85rem', padding: '0.65rem 1.25rem' }}
+                    style={{ fontSize: '0.85rem', padding: '0.65rem 1.25rem', minHeight: '44px' }}
                   >
                     📞 Call for Route Directions
                   </a>
@@ -444,7 +574,7 @@ const Home: React.FC = () => {
           <a
             href="tel:918555085539"
             className="btn btn-primary"
-            style={{ padding: '0.85rem 1.75rem', fontSize: '1rem' }}
+            style={{ padding: '0.85rem 1.75rem', fontSize: '1rem', minHeight: '44px' }}
           >
             📞 Call +91 85550 85539
           </a>
@@ -456,6 +586,7 @@ const Home: React.FC = () => {
             style={{
               padding: '0.85rem 1.75rem',
               fontSize: '1rem',
+              minHeight: '44px',
               backgroundColor: '#15803D',
               color: '#FFFFFF'
             }}
