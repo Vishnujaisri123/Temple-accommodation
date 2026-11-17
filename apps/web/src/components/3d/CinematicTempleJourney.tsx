@@ -57,7 +57,11 @@ const WAYPOINTS: Waypoint[] = [
   { t: 1.00, camPos: [0, -0.28, 0.32], lookAt: [0, -0.29, 0] }
 ];
 
-function interpolateWaypoints(t: number): { pos: [number, number, number]; look: [number, number, number] } {
+// Pre-allocated vectors for garbage-collection free interpolation in useFrame
+const _tempCamPos = new THREE.Vector3();
+const _tempLookAt = new THREE.Vector3();
+
+function getInterpolatedWaypoints(t: number, outPos: THREE.Vector3, outLook: THREE.Vector3): void {
   const clampedT = Math.max(0, Math.min(1, t));
 
   let idx = 0;
@@ -76,36 +80,33 @@ function interpolateWaypoints(t: number): { pos: [number, number, number]; look:
   // Smooth Hermite / Smoothstep easing for cinematic glide
   const easeT = localT * localT * (3 - 2 * localT);
 
-  const pos: [number, number, number] = [
+  outPos.set(
     THREE.MathUtils.lerp(p1.camPos[0], p2.camPos[0], easeT),
     THREE.MathUtils.lerp(p1.camPos[1], p2.camPos[1], easeT),
     THREE.MathUtils.lerp(p1.camPos[2], p2.camPos[2], easeT)
-  ];
+  );
 
-  const look: [number, number, number] = [
+  outLook.set(
     THREE.MathUtils.lerp(p1.lookAt[0], p2.lookAt[0], easeT),
     THREE.MathUtils.lerp(p1.lookAt[1], p2.lookAt[1], easeT),
     THREE.MathUtils.lerp(p1.lookAt[2], p2.lookAt[2], easeT)
-  ];
-
-  return { pos, look };
+  );
 }
 
 // ----------------------------------------------------
 // 2. 3D Scene: Unified Temple Complex & Coordinated Camera
+// High-performance static rendering without redundant shadow passes
 // ----------------------------------------------------
 interface SceneContentProps {
   progressRef: React.MutableRefObject<number>;
   userYawRef: React.MutableRefObject<number>;
   baseYawRef: React.MutableRefObject<number>;
-  onProgressUpdate?: (p: number) => void;
 }
 
 const SceneContent: React.FC<SceneContentProps> = ({
   progressRef,
   userYawRef,
-  baseYawRef,
-  onProgressUpdate
+  baseYawRef
 }) => {
   // Pass true for Draco, true for Meshopt, and custom loader configurator for meshoptimizer
   const templeGltf = useGLTF(TEMPLE_MODEL_PATH, true, true, configureGLTFLoader);
@@ -114,15 +115,18 @@ const SceneContent: React.FC<SceneContentProps> = ({
   const currentProgress = useRef(0);
   const dampedYaw = useRef(0);
   const complexGroupRef = useRef<THREE.Group>(null);
+  const swamyGroupRef = useRef<THREE.Group>(null);
 
-  // Configure materials: double-sided rendering for interior walls
+  // Configure materials: double-sided rendering for interior walls,
+  // disable dynamic shadows to eliminate 7.5M vertex shadow depth pass, enable frustum culling
   useEffect(() => {
     if (templeGltf.scene) {
       templeGltf.scene.traverse((child) => {
         if ((child as THREE.Mesh).isMesh) {
           const mesh = child as THREE.Mesh;
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
+          mesh.castShadow = false;
+          mesh.receiveShadow = false;
+          mesh.frustumCulled = true;
           const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
           materials.forEach((m) => {
             m.side = THREE.DoubleSide; // Allows viewing inside as camera enters
@@ -138,11 +142,12 @@ const SceneContent: React.FC<SceneContentProps> = ({
       swamyGltf.scene.traverse((child) => {
         if ((child as THREE.Mesh).isMesh) {
           const mesh = child as THREE.Mesh;
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
+          mesh.castShadow = false;
+          mesh.receiveShadow = false;
+          mesh.frustumCulled = true;
           const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
           materials.forEach((m) => {
-            m.side = THREE.FrontSide;
+            m.side = THREE.FrontSide; // Enable backface culling on Swamy's 1.95M polygons
             if ('roughness' in m) {
               const stdMat = m as THREE.MeshStandardMaterial;
               stdMat.roughness = 0.5;
@@ -152,38 +157,48 @@ const SceneContent: React.FC<SceneContentProps> = ({
         }
       });
     }
+
+    // Refresh ScrollTrigger once models are loaded and mounted
+    ScrollTrigger.refresh();
   }, [templeGltf, swamyGltf]);
 
   // Coordinated camera journey driven by useFrame and smooth damping
   useFrame((state, delta) => {
     const targetP = progressRef.current;
+    // Fast responsive dampening (16.0) aligned with Lenis smooth momentum scrolling
     currentProgress.current = THREE.MathUtils.damp(
       currentProgress.current,
       targetP,
-      5.5,
+      16.0,
       delta
     );
 
     const p = currentProgress.current;
-    if (onProgressUpdate) {
-      onProgressUpdate(p);
+
+    // Toggle Swamy visibility: only render when camera enters or approaches (p >= 0.35)
+    // Completely eliminates 1.95M triangle draw pass during exterior stages!
+    if (swamyGroupRef.current) {
+      const isSwamyVisible = p >= 0.35;
+      if (swamyGroupRef.current.visible !== isSwamyVisible) {
+        swamyGroupRef.current.visible = isSwamyVisible;
+      }
     }
 
-    const { pos, look } = interpolateWaypoints(p);
+    getInterpolatedWaypoints(p, _tempCamPos, _tempLookAt);
 
     // Subtle gentle breathing motion when idle at exterior or darshan
     const idleWeight = p < 0.15 ? (1 - p / 0.15) : (p > 0.88 ? (p - 0.88) / 0.12 : 0);
     const idleSwayX = Math.sin(state.clock.elapsedTime * 0.75) * 0.003 * idleWeight;
     const idleSwayY = Math.cos(state.clock.elapsedTime * 0.9) * 0.002 * idleWeight;
 
-    state.camera.position.set(pos[0] + idleSwayX, pos[1] + idleSwayY, pos[2]);
-    state.camera.lookAt(look[0], look[1], look[2]);
+    state.camera.position.set(_tempCamPos.x + idleSwayX, _tempCamPos.y + idleSwayY, _tempCamPos.z);
+    state.camera.lookAt(_tempLookAt.x, _tempLookAt.y, _tempLookAt.z);
 
     // Handle user drag & base rotation
     // When devotee starts scrolling down into the temple (p > 0.08),
     // user drag yaw smoothly re-aligns back to 0 so the journey enters straight
     const targetYaw = p > 0.08 ? 0 : userYawRef.current;
-    dampedYaw.current = THREE.MathUtils.damp(dampedYaw.current, targetYaw, 4.5, delta);
+    dampedYaw.current = THREE.MathUtils.damp(dampedYaw.current, targetYaw, 6.0, delta);
 
     if (complexGroupRef.current) {
       complexGroupRef.current.rotation.y = baseYawRef.current + dampedYaw.current;
@@ -192,28 +207,28 @@ const SceneContent: React.FC<SceneContentProps> = ({
 
   return (
     <>
-      {/* Daylight / Exterior Illumination */}
-      <ambientLight intensity={0.95} color="#FFFDF5" />
+      {/* Optimized Daylight / Exterior Illumination (No dynamic shadow map depth pass) */}
+      <ambientLight intensity={1.1} color="#FFFDF5" />
       <directionalLight
         position={[6, 10, 5]}
-        intensity={1.25}
+        intensity={1.35}
         color="#FFF6D8"
-        castShadow
-        shadow-mapSize={[1024, 1024]}
       />
-      <hemisphereLight intensity={0.45} color="#FFF8EB" groundColor="#D4C8B5" />
+      <hemisphereLight intensity={0.5} color="#FFF8EB" groundColor="#D4C8B5" />
 
       {/* Unified Temple & Sanctum Complex */}
-      {/* Default base angle (-Math.PI / 2) brings front entrance (+X) directly facing the camera (+Z) */}
+      {/* Default base angle (-Math.PI / 2) brings front entrance directly facing camera (+Z) */}
       <group ref={complexGroupRef} position={[0, 0, 0]}>
         {/* 1. Temple Exterior & Interior Structure */}
         <primitive object={templeGltf.scene} />
 
         {/* 2. Swamy Deity placed in the Down Center of the Temple */}
-        {/* Resting naturally on the temple floor */}
+        {/* Hidden during exterior stages (p < 0.35) to save 1.95M triangles */}
         <group
+          ref={swamyGroupRef}
           position={[0, -0.297, 0]}
           scale={[0.18, 0.18, 0.18]}
+          visible={false}
         >
           <primitive object={swamyGltf.scene} />
         </group>
@@ -566,6 +581,8 @@ const TempleFallbackHero: React.FC<FallbackProps> = ({
 
 // ----------------------------------------------------
 // 6. Main Exported Cinematic Journey Component
+// Refactored for Zero React Re-renders During Scrolling:
+// All overlays and progress animations update directly via lightweight DOM refs.
 // ----------------------------------------------------
 interface CinematicTempleJourneyProps {
   onExploreClick?: () => void;
@@ -580,7 +597,14 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
   const userYawRef = useRef<number>(0);
   const baseYawRef = useRef<number>(FRONT_VIEW_ANGLE);
 
-  const [scrollProgress, setScrollProgress] = useState<number>(0);
+  // Overlay DOM refs for zero-render 60-120fps direct DOM manipulation
+  const stage1OverlayRef = useRef<HTMLDivElement>(null);
+  const stage2OverlayRef = useRef<HTMLDivElement>(null);
+  const stage4OverlayRef = useRef<HTMLDivElement>(null);
+  const stage5OverlayRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const bottomGradientRef = useRef<HTMLDivElement>(null);
+
   const [activeAngleLabel, setActiveAngleLabel] = useState<string>('Front Entrance');
   const [webglSupported, setWebglSupported] = useState<boolean>(true);
   const [diagnostics, setDiagnostics] = useState<{
@@ -597,13 +621,46 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
     swamyUrl: SWAMY_MODEL_PATH
   });
 
-  // Interactive mouse/touch drag state
+  // Interactive mouse drag state
   const isDragging = useRef(false);
   const startX = useRef(0);
 
+  // Efficient DOM style updater with zero React state allocations
+  const updateOverlays = useCallback((p: number) => {
+    if (stage1OverlayRef.current) {
+      const op1 = Math.max(0, 1 - p * 5.5);
+      stage1OverlayRef.current.style.opacity = op1.toFixed(3);
+      stage1OverlayRef.current.style.pointerEvents = p < 0.18 ? 'auto' : 'none';
+      stage1OverlayRef.current.style.cursor = p < 0.18 ? 'grab' : 'default';
+    }
+
+    if (stage2OverlayRef.current) {
+      const op2 = p >= 0.22 && p <= 0.48 ? Math.sin(((p - 0.22) / 0.26) * Math.PI) : 0;
+      stage2OverlayRef.current.style.opacity = op2.toFixed(3);
+    }
+
+    if (stage4OverlayRef.current) {
+      const op4 = p >= 0.52 && p <= 0.76 ? Math.sin(((p - 0.52) / 0.24) * Math.PI) : 0;
+      stage4OverlayRef.current.style.opacity = op4.toFixed(3);
+    }
+
+    if (stage5OverlayRef.current) {
+      const op5 = p >= 0.80 ? Math.min(1, (p - 0.80) / 0.15) : 0;
+      stage5OverlayRef.current.style.opacity = op5.toFixed(3);
+    }
+
+    if (progressBarRef.current) {
+      progressBarRef.current.style.transform = `scaleX(${p})`;
+    }
+
+    if (bottomGradientRef.current) {
+      const opGrad = p > 0.82 ? Math.min(1, (p - 0.82) / 0.15) : 0;
+      bottomGradientRef.current.style.opacity = opGrad.toFixed(3);
+    }
+  }, []);
+
   // Preflight asset & WebGL inspection on mount
   useEffect(() => {
-    // 1. Check WebGL availability
     let hasWebGL = false;
     let rendererName = 'Not Available';
     try {
@@ -620,7 +677,6 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
 
     setWebglSupported(hasWebGL);
 
-    // 2. Preflight HEAD checks to verify that models are being served with correct status
     const runPreflight = async () => {
       let tStatus = 'Checking...';
       let sStatus = 'Checking...';
@@ -629,9 +685,6 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
         const respT = await fetch(TEMPLE_MODEL_PATH, { method: 'HEAD' });
         const cTypeT = respT.headers.get('content-type') || '';
         tStatus = `Status ${respT.status} (${cTypeT || 'no-type'})`;
-        if (cTypeT.includes('text/html')) {
-          console.warn('⚠️ [3D Virtual Darshan] Warning: temple.glb returned text/html. Hosting may be redirecting missing files to index.html.');
-        }
       } catch (err) {
         tStatus = `Network failed: ${err instanceof Error ? err.message : String(err)}`;
       }
@@ -644,49 +697,49 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
         sStatus = `Network failed: ${err instanceof Error ? err.message : String(err)}`;
       }
 
-      const diag = {
+      setDiagnostics({
         webglSupported: hasWebGL,
         webglRenderer: rendererName,
         templeUrl: TEMPLE_MODEL_PATH,
         templeStatus: tStatus,
         swamyUrl: SWAMY_MODEL_PATH,
         swamyStatus: sStatus
-      };
-
-      setDiagnostics(diag);
-
-      // Diagnostic group in browser developer tools
-      console.groupCollapsed('🕉️ Vadapalli 3D Virtual Darshan Asset Preflight');
-      console.log('WebGL Supported:', hasWebGL, '| Renderer:', rendererName);
-      console.log('Temple Model URL:', TEMPLE_MODEL_PATH, '| Result:', tStatus);
-      console.log('Swamy Model URL:', SWAMY_MODEL_PATH, '| Result:', sStatus);
-      console.log('Three.js Revision:', THREE.REVISION);
-      console.groupEnd();
+      });
     };
 
     runPreflight();
   }, []);
 
+  // ScrollTrigger Setup: Zero React State Updates, High Performance Direct DOM Sync
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // Set up GSAP ScrollTrigger
+    // Initialize overlay state immediately at scroll = 0
+    updateOverlays(0);
+
     const trigger = ScrollTrigger.create({
       trigger: container,
       start: 'top top',
       end: 'bottom bottom',
-      scrub: 1, // Smooth dampening with mouse and touch wheel
+      scrub: 0.1, // Near-instantaneous response working harmoniously with Lenis momentum
       onUpdate: (self) => {
         progressRef.current = self.progress;
-        setScrollProgress(self.progress);
+        updateOverlays(self.progress);
       }
     });
 
+    const handleResize = () => {
+      ScrollTrigger.refresh();
+    };
+
+    window.addEventListener('resize', handleResize);
+
     return () => {
+      window.removeEventListener('resize', handleResize);
       trigger.kill();
     };
-  }, []);
+  }, [updateOverlays]);
 
   // Quick preset angle switchers
   const handleSetAngle = useCallback((angle: number, label: string) => {
@@ -708,8 +761,10 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
   }, [handleSetAngle]);
 
   // Pointer drag for interactive exploration at Stage 1
+  // Desktop mouse only: Never intercept or capture touch swipe gestures on mobile
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (scrollProgress < 0.18) {
+    if (e.pointerType !== 'mouse') return;
+    if (progressRef.current < 0.18) {
       isDragging.current = true;
       startX.current = e.clientX;
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -717,7 +772,8 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (isDragging.current && scrollProgress < 0.18) {
+    if (e.pointerType !== 'mouse') return;
+    if (isDragging.current && progressRef.current < 0.18) {
       const delta = e.clientX - startX.current;
       startX.current = e.clientX;
       userYawRef.current += delta * 0.007;
@@ -726,6 +782,7 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    if (e.pointerType !== 'mouse') return;
     isDragging.current = false;
     try {
       (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
@@ -790,13 +847,14 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
         >
           {/* Full-Screen 3D Canvas */}
           <Canvas
-            shadows
-            camera={{ position: [0, 0.22, 2.25], fov: 46, near: 0.02, far: 40 }}
-            dpr={[1, 1.75]} // Adaptive DPR for battery and mobile optimization
+            camera={{ position: [0, 0.22, 2.25], fov: 46, near: 0.05, far: 25 }}
+            dpr={[1, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 1.5)]}
             gl={{
               powerPreference: 'high-performance',
               antialias: true,
-              alpha: true
+              alpha: true,
+              stencil: false,
+              depth: true
             }}
             style={{
               position: 'absolute',
@@ -819,6 +877,7 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
           {/* STAGE 1 OVERLAY (0% to 18% Scroll): Exterior Welcome */}
           {/* ---------------------------------------------------- */}
           <div
+            ref={stage1OverlayRef}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
@@ -826,9 +885,9 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
             style={{
               position: 'absolute',
               inset: 0,
-              pointerEvents: scrollProgress < 0.2 ? 'auto' : 'none',
-              opacity: Math.max(0, 1 - scrollProgress * 5.5),
-              transition: 'opacity 0.2s ease-out',
+              pointerEvents: 'auto',
+              opacity: 1,
+              transition: 'opacity 0.15s ease-out',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
@@ -836,7 +895,7 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
               padding: '4rem 1.5rem 3rem 1.5rem',
               textAlign: 'center',
               background: 'radial-gradient(circle at 50% 50%, rgba(26, 18, 16, 0.2) 0%, rgba(18, 12, 10, 0.65) 100%)',
-              cursor: scrollProgress < 0.18 ? 'grab' : 'default',
+              cursor: 'grab',
               userSelect: 'none'
             }}
           >
@@ -850,7 +909,8 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
                 display: 'flex',
                 gap: '0.5rem',
                 flexWrap: 'wrap',
-                justifyContent: 'flex-end'
+                justifyContent: 'flex-end',
+                pointerEvents: 'auto'
               }}
             >
               <button
@@ -999,17 +1059,15 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
           {/* STAGE 2 & 3 OVERLAY (20% to 50% Scroll): Approach/Entry */}
           {/* ---------------------------------------------------- */}
           <div
+            ref={stage2OverlayRef}
             style={{
               position: 'absolute',
               bottom: '10%',
               left: '50%',
               transform: 'translateX(-50%)',
               pointerEvents: 'none',
-              opacity:
-                scrollProgress >= 0.22 && scrollProgress <= 0.48
-                  ? Math.sin(((scrollProgress - 0.22) / 0.26) * Math.PI)
-                  : 0,
-              transition: 'opacity 0.2s',
+              opacity: 0,
+              transition: 'opacity 0.15s',
               textAlign: 'center',
               backgroundColor: 'rgba(26, 18, 16, 0.75)',
               backdropFilter: 'blur(8px)',
@@ -1032,17 +1090,15 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
           {/* STAGE 4 OVERLAY (52% to 75% Scroll): Mandapam Walk */}
           {/* ---------------------------------------------------- */}
           <div
+            ref={stage4OverlayRef}
             style={{
               position: 'absolute',
               bottom: '10%',
               left: '50%',
               transform: 'translateX(-50%)',
               pointerEvents: 'none',
-              opacity:
-                scrollProgress >= 0.52 && scrollProgress <= 0.76
-                  ? Math.sin(((scrollProgress - 0.52) / 0.24) * Math.PI)
-                  : 0,
-              transition: 'opacity 0.2s',
+              opacity: 0,
+              transition: 'opacity 0.15s',
               textAlign: 'center',
               backgroundColor: 'rgba(26, 18, 16, 0.75)',
               backdropFilter: 'blur(8px)',
@@ -1063,17 +1119,16 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
 
           {/* ---------------------------------------------------- */}
           {/* STAGE 5 & 6 OVERLAY (80% to 100% Scroll): Divine Darshan */}
+          {/* Wrapper is strictly pointerEvents: 'none' so devotee is never trapped in scroll! */}
           {/* ---------------------------------------------------- */}
           <div
+            ref={stage5OverlayRef}
             style={{
               position: 'absolute',
               inset: 0,
-              pointerEvents: scrollProgress >= 0.85 ? 'auto' : 'none',
-              opacity:
-                scrollProgress >= 0.8
-                  ? Math.min(1, (scrollProgress - 0.8) / 0.15)
-                  : 0,
-              transition: 'opacity 0.25s ease-out',
+              pointerEvents: 'none',
+              opacity: 0,
+              transition: 'opacity 0.2s ease-out',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
@@ -1091,7 +1146,8 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
                 border: '1px solid rgba(197, 160, 89, 0.5)',
                 padding: '0.6rem 1.75rem',
                 borderRadius: '9999px',
-                marginTop: '1.5rem'
+                marginTop: '1.5rem',
+                pointerEvents: 'none'
               }}
             >
               <div style={{ fontFamily: 'var(--font-telugu)', fontSize: '1.35rem', color: '#FFD700', fontWeight: 700 }}>
@@ -1102,7 +1158,7 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
               </div>
             </div>
 
-            {/* Bottom Sleek Darshan Bar */}
+            {/* Bottom Sleek Darshan Bar - Interactive buttons have pointerEvents: 'auto' */}
             <div
               style={{
                 maxWidth: '680px',
@@ -1113,7 +1169,8 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
                 borderRadius: '16px',
                 padding: '0.85rem 1.4rem',
                 boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
-                marginBottom: '0.75rem'
+                marginBottom: '0.75rem',
+                pointerEvents: 'auto'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
@@ -1134,7 +1191,8 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
                       padding: '0.55rem 1.25rem',
                       fontSize: '0.88rem',
                       backgroundColor: '#701A1E',
-                      border: '1px solid #C5A059'
+                      border: '1px solid #C5A059',
+                      cursor: 'pointer'
                     }}
                   >
                     📅 Book Room Below ↓
@@ -1148,7 +1206,8 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
                       padding: '0.55rem 1.1rem',
                       fontSize: '0.88rem',
                       borderColor: '#C5A059',
-                      color: '#FFD700'
+                      color: '#FFD700',
+                      cursor: 'pointer'
                     }}
                   >
                     💬 WhatsApp
@@ -1158,7 +1217,7 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
             </div>
           </div>
 
-          {/* Scroll Progress Bar at the Top */}
+          {/* Scroll Progress Bar at the Top - GPU Transform scaleX (No Layout Reflow) */}
           <div
             style={{
               position: 'absolute',
@@ -1171,18 +1230,22 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
             }}
           >
             <div
+              ref={progressBarRef}
               style={{
                 height: '100%',
-                width: `${scrollProgress * 100}%`,
+                width: '100%',
+                transform: 'scaleX(0)',
+                transformOrigin: 'left',
                 backgroundColor: '#C5A059',
                 boxShadow: '0 0 8px #FFD700',
-                transition: 'width 0.05s linear'
+                willChange: 'transform'
               }}
             />
           </div>
 
           {/* Bottom Smooth Transition Gradient from Dark Sanctuary to Warm Ivory Sandstone */}
           <div
+            ref={bottomGradientRef}
             style={{
               position: 'absolute',
               bottom: 0,
@@ -1192,11 +1255,10 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
               background: 'linear-gradient(to bottom, transparent 0%, rgba(18, 12, 10, 0.7) 45%, var(--bg-main) 100%)',
               pointerEvents: 'none',
               zIndex: 25,
-              opacity: scrollProgress > 0.82 ? Math.min(1, (scrollProgress - 0.82) / 0.15) : 0,
-              transition: 'opacity 0.25s ease-out'
+              opacity: 0,
+              transition: 'opacity 0.2s ease-out'
             }}
           />
-
         </div>
       </section>
     </ThreeErrorBoundary>
