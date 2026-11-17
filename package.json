@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "dev": "npx concurrently \"npm run dev -w apps/web\" \"npm run dev -w server\"",
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present && node scripts/copy-dist.js",
+    "build:web": "npm run build -w apps/web && node scripts/copy-dist.js",
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
