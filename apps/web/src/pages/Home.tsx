@@ -1,7 +1,12 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import {
+  DateTimeAvailabilitySelector
+} from '../components/booking/DateTimeAvailabilitySelector';
+import type { AvailabilityData } from '../components/booking/DateTimeAvailabilitySelector';
+import { toKolkataIsoString } from '../utils/dateTime';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -46,10 +51,23 @@ const JourneyPlaceholder: React.FC = () => (
 );
 
 const Home: React.FC = () => {
-  // Quick date selector state
-  const [quickCheckIn, setQuickCheckIn] = useState('');
-  const [quickCheckOut, setQuickCheckOut] = useState('');
-  const [selectedAccType, setSelectedAccType] = useState('ALL');
+  // Quick date selector state (Asia/Kolkata)
+  const [quickCheckInDate, setQuickCheckInDate] = useState('');
+  const [quickCheckInTime, setQuickCheckInTime] = useState('');
+  const [quickDurationHours, setQuickDurationHours] = useState(12);
+  const [selectedAccType, setSelectedAccType] = useState<'ALL' | 'PRIVATE_ROOM' | 'HALL'>('ALL');
+  const [homeAvailability, setHomeAvailability] = useState<AvailabilityData | null>(null);
+
+  const { homeCheckInIso, homeCheckOutIso } = useMemo(() => {
+    if (!quickCheckInDate || !quickCheckInTime) return { homeCheckInIso: '', homeCheckOutIso: '' };
+    const inIso = toKolkataIsoString(quickCheckInDate, quickCheckInTime);
+    const inD = new Date(inIso);
+    const outD = new Date(inD.getTime() + quickDurationHours * 60 * 60 * 1000);
+    return {
+      homeCheckInIso: inIso,
+      homeCheckOutIso: outD.toISOString()
+    };
+  }, [quickCheckInDate, quickCheckInTime, quickDurationHours]);
 
   // GSAP Smooth ScrollTrigger Reveals for Below-the-Hero Sections
   useEffect(() => {
@@ -184,60 +202,66 @@ const Home: React.FC = () => {
             Book your accommodation just 200 meters from the temple. All stays are scheduled in 12-hour intervals for devotee convenience during darshan and sevas.
           </p>
 
+          <div style={{ marginBottom: '1.5rem' }}>
+            <DateTimeAvailabilitySelector
+              checkInDate={quickCheckInDate}
+              onCheckInDateChange={setQuickCheckInDate}
+              checkInTime={quickCheckInTime}
+              onCheckInTimeChange={setQuickCheckInTime}
+              durationHours={quickDurationHours}
+              onDurationHoursChange={setQuickDurationHours}
+              accommodationTypeFilter={selectedAccType}
+              onAvailabilityChange={setHomeAvailability}
+            />
+          </div>
+
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '1.25rem',
-              alignItems: 'flex-end'
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              borderTop: '1px solid #E2E8F0',
+              paddingTop: '1.25rem'
             }}
           >
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
-                Check-in Date & Time
-              </label>
-              <input
-                type="datetime-local"
-                className="input-field"
-                value={quickCheckIn}
-                onChange={(e) => setQuickCheckIn(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
-                Check-out Date & Time
-              </label>
-              <input
-                type="datetime-local"
-                className="input-field"
-                value={quickCheckOut}
-                onChange={(e) => setQuickCheckOut(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
-                Accommodation Preference
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <label style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                Filter Preference:
               </label>
               <select
                 className="input-field"
                 value={selectedAccType}
-                onChange={(e) => setSelectedAccType(e.target.value)}
+                onChange={(e) => setSelectedAccType(e.target.value as any)}
+                style={{ padding: '0.5rem 0.85rem', fontSize: '0.88rem', width: 'auto' }}
               >
-                <option value="ALL">All Available Options</option>
-                <option value="ROOM">Private Room (Rooms 1 & 2)</option>
-                <option value="HALL">Shared Hall (Single Beds)</option>
+                <option value="ALL">All Accommodations</option>
+                <option value="PRIVATE_ROOM">Private Rooms (Rooms 1 & 2)</option>
+                <option value="HALL">Shared Hall (5 Beds)</option>
               </select>
             </div>
 
             <div>
               <Link
-                to={`/rooms${quickCheckIn ? `?checkIn=${encodeURIComponent(quickCheckIn)}&checkOut=${encodeURIComponent(quickCheckOut)}` : ''}`}
+                to={
+                  quickCheckInDate && quickCheckInTime
+                    ? `/book${selectedAccType === 'HALL' ? '/hall' : ''}?checkIn=${encodeURIComponent(homeCheckInIso)}&checkOut=${encodeURIComponent(homeCheckOutIso)}`
+                    : '/rooms'
+                }
                 className="btn btn-primary"
-                style={{ width: '100%', padding: '0.75rem 1rem', minHeight: '44px' }}
+                style={{
+                  padding: '0.75rem 1.75rem',
+                  fontSize: '0.95rem',
+                  opacity: homeAvailability?.allUnavailable ? 0.6 : 1,
+                  pointerEvents: homeAvailability?.allUnavailable ? 'none' : 'auto'
+                }}
               >
-                Search Options →
+                {homeAvailability?.allUnavailable
+                  ? 'Slot Fully Booked'
+                  : quickCheckInDate && quickCheckInTime
+                  ? 'Proceed to Reserve Selected Slot →'
+                  : 'Check Availability & Book →'}
               </Link>
             </div>
           </div>

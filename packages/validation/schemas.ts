@@ -15,4 +15,18 @@ export const BookingRequestSchema = z.object({
   policyAccepted: z.literal(true, {
     errorMap: () => ({ message: "You must accept the booking policy" })
   }),
+}).refine((data) => {
+  const checkInTime = new Date(data.checkIn).getTime();
+  // 5-minute safety buffer for network delay/clock skew
+  return checkInTime >= Date.now() - 5 * 60 * 1000;
+}, {
+  message: "Check-in date and time cannot be in the past",
+  path: ["checkIn"]
+}).refine((data) => {
+  const checkInTime = new Date(data.checkIn).getTime();
+  const checkOutTime = new Date(data.checkOut).getTime();
+  return checkOutTime > checkInTime;
+}, {
+  message: "Check-out date and time must be after check-in date and time",
+  path: ["checkOut"]
 });

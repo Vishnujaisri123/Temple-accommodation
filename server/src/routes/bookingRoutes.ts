@@ -5,17 +5,22 @@ import { Booking } from '../models/Booking';
 
 const router = Router();
 
-// Get Availability
+// Get Availability for selected date range
 router.get('/availability', async (req, res) => {
   try {
     const { checkIn, checkOut } = req.query;
     if (!checkIn || !checkOut) {
       return res.status(400).json({ success: false, message: 'checkIn and checkOut dates are required' });
     }
-    const availability = await AvailabilityService.checkAvailability(checkIn as string, checkOut as string);
-    res.json({ success: true, data: availability });
+    const result = await AvailabilityService.checkAvailability(checkIn as string, checkOut as string);
+    res.json({
+      success: true,
+      data: result.accommodations,
+      summary: result.summary,
+      accommodations: result.accommodations
+    });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: error.message || 'Error checking availability' });
   }
 });
 
