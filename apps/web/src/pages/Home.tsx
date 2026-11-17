@@ -1,5 +1,9 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const CinematicTempleJourney = lazy(() => import('../components/3d/CinematicTempleJourney'));
 
@@ -46,6 +50,100 @@ const Home: React.FC = () => {
   const [quickCheckIn, setQuickCheckIn] = useState('');
   const [quickCheckOut, setQuickCheckOut] = useState('');
   const [selectedAccType, setSelectedAccType] = useState('ALL');
+
+  // GSAP Smooth ScrollTrigger Reveals for Below-the-Hero Sections
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // 1. Date Selector card reveal
+      gsap.fromTo(
+        '#date-selector',
+        { opacity: 0, y: 40 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1.1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '#date-selector',
+            start: 'top 88%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+
+      // 2. Accommodation Cards staggered glide-in
+      gsap.fromTo(
+        '#rooms .card',
+        { opacity: 0, y: 40 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.9,
+          stagger: 0.16,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '#rooms',
+            start: 'top 82%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+
+      // 3. Facilities Grid items
+      gsap.fromTo(
+        '#facilities-grid > div',
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.12,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '#facilities',
+            start: 'top 82%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+
+      // 4. Guidelines Card
+      gsap.fromTo(
+        '#guidelines-card',
+        { opacity: 0, y: 35 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.9,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '#guidelines-card',
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+
+      // 5. Location Section Card
+      gsap.fromTo(
+        '#location .card',
+        { opacity: 0, y: 35 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.9,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '#location',
+            start: 'top 82%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+    });
+
+    return () => ctx.revert();
+  }, []);
 
   return (
     <div className="animate-fade-in" style={{ backgroundColor: 'var(--bg-main)' }}>
@@ -272,7 +370,7 @@ const Home: React.FC = () => {
             </h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
+          <div id="facilities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
             <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-main)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🚿</div>
               <h3 style={{ fontSize: '1.1rem', marginBottom: '0.35rem' }}>Hot & Running Water</h3>
@@ -310,7 +408,7 @@ const Home: React.FC = () => {
 
       {/* 5. Booking Information & Policy */}
       <section style={{ maxWidth: '1080px', margin: '0 auto', padding: '4rem 1.5rem' }}>
-        <div className="card" style={{ padding: '2.5rem', borderLeft: '5px solid var(--color-primary)' }}>
+        <div id="guidelines-card" className="card" style={{ padding: '2.5rem', borderLeft: '5px solid var(--color-primary)' }}>
           <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', marginBottom: '1rem' }}>
             Important Booking & Confirmation Guidelines
           </h2>

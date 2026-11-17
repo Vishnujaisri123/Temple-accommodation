@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { MeshoptDecoder } from 'meshoptimizer';
+import { useSmoothScroll } from '../common/SmoothScrollProvider';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -731,14 +732,13 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
     } catch {}
   };
 
+  const { scrollTo } = useSmoothScroll();
+
   const handleContinueToBooking = () => {
     if (onBookClick) {
       onBookClick();
     } else {
-      const target = document.getElementById('date-selector');
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth' });
-      }
+      scrollTo('#date-selector', { offset: -30, duration: 1.4 });
     }
   };
 
@@ -1180,6 +1180,22 @@ const CinematicTempleJourney: React.FC<CinematicTempleJourneyProps> = ({ onBookC
               }}
             />
           </div>
+
+          {/* Bottom Smooth Transition Gradient from Dark Sanctuary to Warm Ivory Sandstone */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              width: '100%',
+              height: '140px',
+              background: 'linear-gradient(to bottom, transparent 0%, rgba(18, 12, 10, 0.7) 45%, var(--bg-main) 100%)',
+              pointerEvents: 'none',
+              zIndex: 25,
+              opacity: scrollProgress > 0.82 ? Math.min(1, (scrollProgress - 0.82) / 0.15) : 0,
+              transition: 'opacity 0.25s ease-out'
+            }}
+          />
 
         </div>
       </section>

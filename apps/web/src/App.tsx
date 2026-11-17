@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { SmoothScrollProvider } from './components/common/SmoothScrollProvider';
 import Navbar from './components/Navbar';
 import AudioPlayer from './components/AudioPlayer';
 import Home from './pages/Home';
@@ -66,7 +67,9 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <AppContent />
+        <SmoothScrollProvider>
+          <AppContent />
+        </SmoothScrollProvider>
       </Router>
     </AuthProvider>
   );
