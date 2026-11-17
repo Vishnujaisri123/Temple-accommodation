@@ -99,18 +99,22 @@ export const createBooking = async (req: Request, res: Response) => {
       baseAmount = pricePerBed * validatedData.bedIds.length * numberOfSlots;
     }
 
-    // 5. GST Calculation from Settings
+    // 5. GST Calculation from Settings (12% standard GST on temple accommodation)
     let settings = await Settings.findOne().session(session);
     if (!settings) {
-       settings = new Settings();
+       settings = new Settings({ gstEnabled: true, gstPercent: 12 });
     }
     
+    // Ensure GST is applied (standard 12% if unconfigured or 0)
+    const isGstEnabled = settings.gstEnabled !== false;
+    const gstRate = (settings.gstPercent && settings.gstPercent > 0) ? settings.gstPercent : 12;
+    
     let gstAmount = 0;
-    if (settings.gstEnabled) {
-      gstAmount = (baseAmount * settings.gstPercent) / 100;
+    if (isGstEnabled) {
+      gstAmount = Math.round(((baseAmount * gstRate) / 100) * 100) / 100;
     }
 
-    const totalAmount = baseAmount + gstAmount;
+    const totalAmount = Math.round((baseAmount + gstAmount) * 100) / 100;
 
     // 6. Create Booking
     const bookingId = await generateBookingId();
@@ -119,7 +123,7 @@ export const createBooking = async (req: Request, res: Response) => {
       ...validatedData,
       bookingId,
       baseAmount,
-      gstRate: settings.gstEnabled ? settings.gstPercent : 0,
+      gstRate: isGstEnabled ? gstRate : 0,
       gstAmount,
       totalAmount,
       bookingStatus: 'PENDING_PAYMENT',
@@ -135,7 +139,13 @@ export const createBooking = async (req: Request, res: Response) => {
     res.status(201).json({
       success: true,
       message: "Booking initialized successfully",
-      data: { bookingId, totalAmount }
+      data: { 
+        bookingId, 
+        baseAmount,
+        gstRate: isGstEnabled ? gstRate : 0,
+        gstAmount,
+        totalAmount 
+      }
     });
 
   } catch (error: any) {

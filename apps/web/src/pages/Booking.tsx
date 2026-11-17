@@ -174,7 +174,7 @@ const Booking: React.FC = () => {
 
   // Pricing Calculation based on 12-hour billing slots
   const pricing = useMemo(() => {
-    if (!activeAccommodation) return { baseAmount: 0, gstAmount: 0, totalAmount: 0 };
+    if (!activeAccommodation) return { baseAmount: 0, gstRate: 12, gstAmount: 0, totalAmount: 0 };
     let base = 0;
     if (activeAccommodation.type === 'PRIVATE_ROOM') {
       base = activeAccommodation.pricePerDay * numberOfSlots;
@@ -182,11 +182,13 @@ const Booking: React.FC = () => {
       const bedsCount = Math.max(1, selectedBedIds.length);
       base = activeAccommodation.pricePerDay * bedsCount * numberOfSlots;
     }
-    const gst = base * 0.12; // 12% standard GST
+    const gstRate = 12; // 12% standard GST
+    const gst = Math.round(((base * gstRate) / 100) * 100) / 100;
     return {
       baseAmount: base,
+      gstRate,
       gstAmount: gst,
-      totalAmount: base + gst
+      totalAmount: Math.round((base + gst) * 100) / 100
     };
   }, [activeAccommodation, numberOfSlots, selectedBedIds]);
 
@@ -376,19 +378,170 @@ const Booking: React.FC = () => {
       </div>
 
       {/* Progress Steps Header */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: step >= 1 ? 'var(--color-primary)' : '#A0AEC0', fontWeight: step === 1 ? 700 : 500 }}>
-          <span style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: step >= 1 ? 'var(--color-primary)' : '#E2E8F0', color: step >= 1 ? '#FFF' : '#718096', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem' }}>1</span>
-          <span>Stay & Details</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: step >= 2 ? 'var(--color-primary)' : '#A0AEC0', fontWeight: step === 2 ? 700 : 500 }}>
-          <span style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: step >= 2 ? 'var(--color-primary)' : '#E2E8F0', color: step >= 2 ? '#FFF' : '#718096', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem' }}>2</span>
-          <span>Review</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: step === 3 ? 'var(--color-primary)' : '#A0AEC0', fontWeight: step === 3 ? 700 : 500 }}>
-          <span style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: step === 3 ? 'var(--color-primary)' : '#E2E8F0', color: step === 3 ? '#FFF' : '#718096', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem' }}>3</span>
-          <span>Payment</span>
-        </div>
+      <div 
+        style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          gap: 'clamp(0.4rem, 2.5vw, 1.25rem)', 
+          marginBottom: '2rem',
+          flexWrap: 'wrap'
+        }}
+        role="navigation"
+        aria-label="Booking steps navigation"
+      >
+        {/* Step 1: Stay & Details */}
+        <button
+          type="button"
+          onClick={() => {
+            setErrorMessage(null);
+            setStep(1);
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            background: step === 1 ? 'rgba(112, 26, 30, 0.08)' : 'transparent',
+            border: step === 1 ? '1px solid rgba(112, 26, 30, 0.2)' : '1px solid transparent',
+            padding: '0.45rem 0.75rem',
+            borderRadius: '10px',
+            color: step >= 1 ? 'var(--color-primary)' : '#A0AEC0',
+            fontWeight: step === 1 ? 700 : 600,
+            cursor: step > 1 ? 'pointer' : 'default',
+            transition: 'all 0.2s ease'
+          }}
+          title={step > 1 ? "Click to go back and edit stay or devotee details" : "Current step: Stay & Details"}
+        >
+          <span style={{ 
+            width: '28px', 
+            height: '28px', 
+            borderRadius: '50%', 
+            backgroundColor: step >= 1 ? 'var(--color-primary)' : '#E2E8F0', 
+            color: step >= 1 ? '#FFF' : '#718096', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontSize: '0.85rem',
+            fontWeight: 700
+          }}>
+            {step > 1 ? '✓' : '1'}
+          </span>
+          <div style={{ textAlign: 'left' }}>
+            <span style={{ display: 'block', fontSize: '0.92rem' }}>Stay & Details</span>
+            {step > 1 && (
+              <span style={{ fontSize: '0.72rem', color: 'var(--color-secondary)', fontWeight: 700 }}>Click to Edit ✏️</span>
+            )}
+          </div>
+        </button>
+
+        <span style={{ color: '#CBD5E0', fontSize: '1.1rem', userSelect: 'none' }}>→</span>
+
+        {/* Step 2: Review */}
+        <button
+          type="button"
+          onClick={() => {
+            if (step === 3) {
+              setErrorMessage(null);
+              setStep(2);
+            } else if (step === 1) {
+              if (!checkInDate || !checkInTime) {
+                setErrorMessage("Please select both check-in date and check-in time first.");
+                return;
+              }
+              if (!activeAccommodation) {
+                setErrorMessage("Please select an accommodation option first.");
+                return;
+              }
+              if (activeAccommodation.type === 'HALL' && selectedBedIds.length === 0) {
+                setErrorMessage("Please select at least one bed in the shared hall.");
+                return;
+              }
+              setErrorMessage(null);
+              setStep(2);
+            }
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            background: step === 2 ? 'rgba(112, 26, 30, 0.08)' : 'transparent',
+            border: step === 2 ? '1px solid rgba(112, 26, 30, 0.2)' : '1px solid transparent',
+            padding: '0.45rem 0.75rem',
+            borderRadius: '10px',
+            color: step >= 2 ? 'var(--color-primary)' : '#A0AEC0',
+            fontWeight: step === 2 ? 700 : 600,
+            cursor: step === 3 || (step === 1 && Boolean(checkInDate && checkInTime && activeAccommodation)) ? 'pointer' : 'default',
+            transition: 'all 0.2s ease'
+          }}
+          title={step === 3 ? "Click to go back and review booking details" : step === 1 ? "Click to proceed to Review" : "Current step: Review"}
+        >
+          <span style={{ 
+            width: '28px', 
+            height: '28px', 
+            borderRadius: '50%', 
+            backgroundColor: step >= 2 ? 'var(--color-primary)' : '#E2E8F0', 
+            color: step >= 2 ? '#FFF' : '#718096', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontSize: '0.85rem',
+            fontWeight: 700
+          }}>
+            {step > 2 ? '✓' : '2'}
+          </span>
+          <div style={{ textAlign: 'left' }}>
+            <span style={{ display: 'block', fontSize: '0.92rem' }}>Review</span>
+            {step === 3 && (
+              <span style={{ fontSize: '0.72rem', color: 'var(--color-secondary)', fontWeight: 700 }}>Click to Review ↩️</span>
+            )}
+          </div>
+        </button>
+
+        <span style={{ color: '#CBD5E0', fontSize: '1.1rem', userSelect: 'none' }}>→</span>
+
+        {/* Step 3: Payment */}
+        <button
+          type="button"
+          onClick={() => {
+            if (step < 3 && bookingResponse) {
+              setErrorMessage(null);
+              setStep(3);
+            }
+          }}
+          disabled={step === 3 || !bookingResponse}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            background: step === 3 ? 'rgba(112, 26, 30, 0.08)' : 'transparent',
+            border: step === 3 ? '1px solid rgba(112, 26, 30, 0.2)' : '1px solid transparent',
+            padding: '0.45rem 0.75rem',
+            borderRadius: '10px',
+            color: step === 3 ? 'var(--color-primary)' : '#A0AEC0',
+            fontWeight: step === 3 ? 700 : 500,
+            cursor: step < 3 && bookingResponse ? 'pointer' : 'default',
+            transition: 'all 0.2s ease'
+          }}
+          title={step === 3 ? "Current step: Payment" : bookingResponse ? "Return to active payment screen" : "Complete review to access payment"}
+        >
+          <span style={{ 
+            width: '28px', 
+            height: '28px', 
+            borderRadius: '50%', 
+            backgroundColor: step === 3 ? 'var(--color-primary)' : '#E2E8F0', 
+            color: step === 3 ? '#FFF' : '#718096', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontSize: '0.85rem',
+            fontWeight: 700
+          }}>
+            3
+          </span>
+          <div style={{ textAlign: 'left' }}>
+            <span style={{ display: 'block', fontSize: '0.92rem' }}>Payment</span>
+          </div>
+        </button>
       </div>
 
       {errorMessage && (
@@ -602,9 +755,34 @@ const Booking: React.FC = () => {
         {/* ==================================================== */}
         {step === 2 && (
           <div>
-            <h2 style={{ fontSize: '1.4rem', color: 'var(--color-primary)', marginBottom: '1.25rem' }}>
-              Booking Summary & Terms
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <h2 style={{ fontSize: '1.4rem', color: 'var(--color-primary)', margin: 0 }}>
+                Booking Summary & Terms
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorMessage(null);
+                  setStep(1);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.4rem 0.85rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  color: 'var(--color-primary)',
+                  backgroundColor: 'rgba(112, 26, 30, 0.08)',
+                  border: '1.5px solid rgba(112, 26, 30, 0.25)',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                ✏️ Edit Stay & Details
+              </button>
+            </div>
 
             {/* Summary Details */}
             <div style={{ backgroundColor: '#F8F9FA', padding: '1.25rem', borderRadius: '10px', border: '1px solid #E2E8F0', marginBottom: '1.5rem' }}>
@@ -661,21 +839,24 @@ const Booking: React.FC = () => {
               <span>I confirm that all guest details are accurate and agree to the booking guidelines and strict no-cancellation policy.</span>
             </label>
 
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={() => {
+                  setErrorMessage(null);
+                  setStep(1);
+                }}
                 className="btn btn-secondary"
-                style={{ flex: 1, padding: '0.85rem' }}
+                style={{ flex: '1 1 180px', padding: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
               >
-                ← Back
+                ← Edit Stay & Details
               </button>
               <button
                 type="button"
                 onClick={handleCreateBooking}
                 disabled={!acceptedPolicy || submitting}
                 className="btn btn-primary"
-                style={{ flex: 2, padding: '0.85rem', backgroundColor: !acceptedPolicy || submitting ? '#A0AEC0' : 'var(--color-primary)' }}
+                style={{ flex: '2 1 240px', padding: '0.85rem', backgroundColor: !acceptedPolicy || submitting ? '#A0AEC0' : 'var(--color-primary)' }}
               >
                 {submitting ? 'Reserving Slot...' : 'Proceed to PhonePe Payment →'}
               </button>
@@ -686,50 +867,206 @@ const Booking: React.FC = () => {
         {/* ==================================================== */}
         {/* STEP 3: PAYMENT GATEWAY */}
         {/* ==================================================== */}
-        {step === 3 && bookingResponse && (
-          <div>
-            <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🛕</div>
-              <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', marginBottom: '0.35rem' }}>
-                Complete Payment via PhonePe
-              </h2>
-              <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)' }}>
-                Booking ID: <strong>{bookingResponse.bookingId}</strong>
+        {step === 3 && (
+          bookingResponse ? (
+            <div>
+              {/* Top Back & Edit Navigation for Step 3 */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid #E2E8F0', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorMessage(null);
+                    setStep(2);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-primary)',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '0.35rem 0.65rem',
+                    borderRadius: '6px',
+                    backgroundColor: 'rgba(112, 26, 30, 0.06)'
+                  }}
+                >
+                  ← Back to Review
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorMessage(null);
+                    setStep(1);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '0.35rem 0.65rem',
+                    borderRadius: '6px',
+                    backgroundColor: '#F1F5F9'
+                  }}
+                >
+                  ✏️ Edit Details (Step 1)
+                </button>
+              </div>
+
+              <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🛕</div>
+                <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', marginBottom: '0.35rem' }}>
+                  Complete Payment via PhonePe
+                </h2>
+                <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)' }}>
+                  Booking ID: <strong>{bookingResponse.bookingId}</strong>
+                </div>
+              </div>
+
+              {/* Payment Section - Clear Room Rent + GST Breakdown */}
+              {(() => {
+                const payableBase = bookingResponse?.baseAmount ?? pricing.baseAmount;
+                const payableGstRate = bookingResponse?.gstRate ?? pricing.gstRate ?? 12;
+                const payableGst = bookingResponse?.gstAmount ?? (Math.round(((payableBase * payableGstRate) / 100) * 100) / 100);
+                const payableTotal = bookingResponse?.totalAmount ?? (payableBase + payableGst);
+
+                return (
+                  <div style={{ backgroundColor: '#F8F9FA', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.75rem', border: '1.5px solid #E2E8F0' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '1.25rem', paddingBottom: '1rem', borderBottom: '1px dashed #CBD5E0' }}>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
+                        Total Payable Amount (Room Rent + GST)
+                      </div>
+                      <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--color-primary)', marginTop: '0.25rem' }}>
+                        ₹{payableTotal.toFixed(2)}
+                      </div>
+                      <div style={{ fontSize: '0.82rem', color: '#4A5568', marginTop: '0.25rem', fontWeight: 500 }}>
+                        (Includes Room Rent and {payableGstRate}% GST)
+                      </div>
+                    </div>
+
+                    {/* Clear Breakdown: Room Rent + GST = Total */}
+                    <div style={{ backgroundColor: '#FFFFFF', borderRadius: '8px', padding: '1rem', border: '1px solid #E2E8F0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.55rem', fontSize: '0.92rem' }}>
+                        <span style={{ color: 'var(--text-main)' }}>
+                          🏨 Room Rent ({numberOfSlots} × 12h slot{activeAccommodation?.type === 'HALL' ? ` × ${selectedBedIds.length} bed(s)` : ''}):
+                        </span>
+                        <span style={{ fontWeight: 600 }}>₹{payableBase.toFixed(2)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.55rem', fontSize: '0.92rem', color: '#2B6CB0' }}>
+                        <span style={{ fontWeight: 600 }}>
+                          ➕ GST ({payableGstRate}%):
+                        </span>
+                        <span style={{ fontWeight: 700 }}>₹{payableGst.toFixed(2)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1.5px solid #E2E8F0', paddingTop: '0.65rem', marginTop: '0.5rem', fontSize: '1.05rem', fontWeight: 800 }}>
+                        <span style={{ color: 'var(--color-primary)' }}>Total to Pay at Gateway:</span>
+                        <span style={{ color: 'var(--color-primary)' }}>₹{payableTotal.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <button
+                  type="button"
+                  onClick={handlePaymentSubmit}
+                  disabled={submitting}
+                  className="btn btn-primary"
+                  style={{ width: '100%', padding: '1rem', fontSize: '1.05rem', backgroundColor: '#5F259F', borderColor: '#5F259F' }}
+                >
+                  {submitting ? 'Connecting...' : '💳 Pay via PhonePe Gateway'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleMockPayment}
+                  disabled={submitting}
+                  className="btn btn-secondary"
+                  style={{ width: '100%', padding: '0.85rem', backgroundColor: '#EDF2F7', color: '#4A5568', borderColor: '#CBD5E0', fontSize: '0.9rem' }}
+                >
+                  🧪 Test Mode: Skip Real Payment
+                </button>
+              </div>
+
+              {/* Bottom Edit & Back Options */}
+              <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '1.5rem', marginTop: '1.75rem' }}>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '0.85rem', textAlign: 'center', fontWeight: 500 }}>
+                  Need to change dates, accommodation type, or guest details before paying?
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.85rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setErrorMessage(null);
+                      setStep(2);
+                    }}
+                    className="btn btn-secondary"
+                    style={{
+                      padding: '0.8rem 1rem',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.4rem',
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#CBD5E0'
+                    }}
+                  >
+                    ← Back to Review
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setErrorMessage(null);
+                      setStep(1);
+                    }}
+                    className="btn btn-secondary"
+                    style={{
+                      padding: '0.8rem 1rem',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.4rem',
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#CBD5E0'
+                    }}
+                  >
+                    ✏️ Edit Stay & Details
+                  </button>
+                </div>
               </div>
             </div>
-
-            <div style={{ backgroundColor: '#F8F9FA', padding: '1.25rem', borderRadius: '10px', textAlign: 'center', marginBottom: '1.75rem', border: '1px solid #E2E8F0' }}>
-              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Amount Payable</div>
-              <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--color-primary)', marginTop: '0.2rem' }}>
-                ₹{bookingResponse.totalAmount?.toFixed(2) || pricing.totalAmount.toFixed(2)}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
-                (Inclusive of all taxes & 12h billing slots)
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>ℹ️</div>
+              <h3 style={{ color: 'var(--color-primary)', marginBottom: '0.5rem' }}>No Active Booking Session</h3>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+                Please select your dates and devotee details first to proceed to payment.
+              </p>
               <button
                 type="button"
-                onClick={handlePaymentSubmit}
-                disabled={submitting}
+                onClick={() => {
+                  setErrorMessage(null);
+                  setStep(1);
+                }}
                 className="btn btn-primary"
-                style={{ width: '100%', padding: '1rem', fontSize: '1.05rem', backgroundColor: '#5F259F', borderColor: '#5F259F' }}
+                style={{ padding: '0.75rem 1.5rem' }}
               >
-                {submitting ? 'Connecting...' : '💳 Pay via PhonePe Gateway'}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleMockPayment}
-                disabled={submitting}
-                className="btn btn-secondary"
-                style={{ width: '100%', padding: '0.85rem', backgroundColor: '#EDF2F7', color: '#4A5568', borderColor: '#CBD5E0', fontSize: '0.9rem' }}
-              >
-                🧪 Test Mode: Skip Real Payment
+                Go to Step 1: Stay & Details
               </button>
             </div>
-          </div>
+          )
         )}
       </div>
     </section>

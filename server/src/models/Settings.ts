@@ -22,8 +22,8 @@ const settingsSchema = new Schema({
   locationLat: { type: Number, default: 0 },
   locationLng: { type: Number, default: 0 },
   mapUrl: { type: String, default: '' },
-  gstEnabled: { type: Boolean, default: false },
-  gstPercent: { type: Number, default: 0 },
+  gstEnabled: { type: Boolean, default: true },
+  gstPercent: { type: Number, default: 12 },
   upiId: { type: String, default: '' },
   upiName: { type: String, default: '' }
 }, { timestamps: true });

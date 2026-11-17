@@ -62,12 +62,18 @@ const seedDB = async () => {
       whatsapp: '+91 8555085539',
       address: 'Near Sri Venkateswara Swamy Temple, Vadapalli, Dr. B.R. Ambedkar Konaseema District, Andhra Pradesh 533237',
       mapUrl: 'https://maps.google.com/?q=Vadapalli+Venkateswara+Swamy+Temple',
-      gstEnabled: false,
-      gstPercent: 0,
+      gstEnabled: true,
+      gstPercent: 12,
       upiId: 'vadapalli@upi',
       upiName: 'Vadapalli Temple Accommodation'
     });
-    console.log('Default settings seeded.');
+    console.log('Default settings seeded with 12% GST enabled.');
+  } else {
+    // Ensure active settings enforce GST enabled
+    await Settings.updateOne(
+      { $or: [{ gstEnabled: false }, { gstPercent: 0 }, { gstPercent: { $exists: false } }] },
+      { $set: { gstEnabled: true, gstPercent: 12 } }
+    );
   }
 };
 
